@@ -284,11 +284,6 @@ Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosy
 - [Font Awesome](https://fontawesome.com/) - İkonlar
 - [OpenPyXL](https://openpyxl.readthedocs.io/) - Excel işlemleri
 
-## 📞 İletişim
-
-- **GitHub**: [@kullaniciadi](https://github.com/kullaniciadi)
-- **Email**: kullanici@example.com
-- **Proje Linki**: [https://github.com/kullaniciadi/port-scanner](https://github.com/kullaniciadi/port-scanner)
 
 ---
 
