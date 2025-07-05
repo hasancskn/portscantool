@@ -6,6 +6,8 @@ WORKDIR /app
 # Sistem bağımlılıklarını yükle
 RUN apt-get update && apt-get install -y \
     gcc \
+    iputils-ping \
+    net-tools \
     && rm -rf /var/lib/apt/lists/*
 
 # Python bağımlılıklarını kopyala ve yükle

@@ -9,9 +9,9 @@ services:
       - FLASK_ENV=production
     volumes:
       - ./logs:/app/logs
-    networks:
-      - port-scanner-network
+    # networks:
+    #   - port-scanner-network
 
-networks:
-  port-scanner-network:
-    driver: bridge 
+# networks:
+#   port-scanner-network:
+#     driver: bridge 

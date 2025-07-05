@@ -1,12 +1,13 @@
-# 🔍 Port Tarama Aracı
+# 🔍 Port & IP Tarama Aracı
 
-Modern ve kullanıcı dostu web tabanlı port tarama aracı. Güvenli ve hızlı port tarama yapın, sonuçları Excel formatında indirin.
+Modern ve kullanıcı dostu web tabanlı port ve ağ tarama aracı. Güvenli ve hızlı ağ keşfi yapın, sonuçları Excel formatında indirin.
 
 ## ✨ Özellikler
 
 - 🌐 **Web Tabanlı Arayüz**: Modern ve responsive tasarım
-- ⚡ **Hızlı Tarama**: Multi-threading ile paralel port tarama
-- 📊 **Detaylı Raporlama**: Açık portlar, servis bilgileri ve istatistikler
+- 🔍 **İki Tarama Modu**: Port tarama ve ağ tarama
+- ⚡ **Hızlı Tarama**: Multi-threading ile paralel tarama
+- 📊 **Detaylı Raporlama**: Açık portlar, aktif IP'ler, servis bilgileri ve istatistikler
 - 📈 **Excel Export**: Sonuçları Excel dosyası olarak indirme
 - 🐳 **Docker Desteği**: Kolay kurulum ve dağıtım
 - 🔒 **Güvenli**: Timeout ve thread limitleri ile güvenli tarama
@@ -53,21 +54,35 @@ http://localhost:5000
 
 ## 📖 Kullanım
 
-### Temel Kullanım
+### Port Tarama
 
-1. **Hedef Host/IP girin:**
+1. **"Port Tarama" sekmesine geçin**
+2. **Hedef Host/IP girin:**
    - IP adresi: `192.168.1.1`
    - Domain adı: `example.com`
 
-2. **Port aralığını belirleyin:**
+3. **Port aralığını belirleyin:**
    - Başlangıç portu: `1`
    - Bitiş portu: `1024` (varsayılan)
 
-3. **Tarama parametrelerini ayarlayın:**
+4. **Tarama parametrelerini ayarlayın:**
    - **Timeout**: Port bağlantı zaman aşımı (varsayılan: 1 saniye)
    - **Maksimum Thread**: Eşzamanlı tarama sayısı (varsayılan: 100)
 
-4. **"Taramayı Başlat" butonuna tıklayın**
+5. **"Port Taramasını Başlat" butonuna tıklayın**
+
+### Ağ Tarama
+
+1. **"Ağ Tarama" sekmesine geçin**
+2. **Ağ aralığını girin (CIDR formatında):**
+   - Örnek: `192.168.1.0/24` (254 IP adresi)
+   - Örnek: `10.0.0.0/16` (65,534 IP adresi)
+
+3. **Tarama parametrelerini ayarlayın:**
+   - **Timeout**: Ping zaman aşımı (varsayılan: 1 saniye)
+   - **Maksimum Thread**: Eşzamanlı ping sayısı (varsayılan: 50)
+
+4. **"Ağ Taramasını Başlat" butonuna tıklayın**
 
 ### Gelişmiş Kullanım
 
@@ -80,23 +95,39 @@ http://localhost:5000
 | Veritabanları | 1433 | 5432 | MSSQL, MySQL, PostgreSQL |
 | Tam Tarama | 1 | 65535 | Tüm portlar (uzun sürer) |
 
+#### Yaygın Ağ Aralıkları
+
+| Amaç | CIDR | IP Sayısı | Açıklama |
+|------|------|-----------|----------|
+| Ev Ağı | 192.168.1.0/24 | 254 | Standart ev ağı |
+| Küçük Ofis | 10.0.0.0/24 | 254 | Küçük işletme ağı |
+| Büyük Ağ | 172.16.0.0/16 | 65,534 | Kurumsal ağ |
+| Test Ağı | 127.0.0.0/8 | 16,777,214 | Localhost ağı |
+
 #### Örnek Kullanım Senaryoları
 
-**1. Web Sunucusu Tarama:**
+**1. Ev Ağı Keşfi:**
+```
+Ağ Aralığı: 192.168.1.0/24
+Timeout: 2 saniye
+Thread: 50
+```
+
+**2. Web Sunucusu Port Tarama:**
 ```
 Hedef: example.com
 Port Aralığı: 80-443
-Timeout: 2 saniye
+Timeout: 1 saniye
 ```
 
-**2. Veritabanı Sunucusu Tarama:**
+**3. Veritabanı Sunucusu Tarama:**
 ```
 Hedef: 192.168.1.100
 Port Aralığı: 1433-5432
 Timeout: 1 saniye
 ```
 
-**3. Hızlı Güvenlik Kontrolü:**
+**4. Hızlı Güvenlik Kontrolü:**
 ```
 Hedef: localhost
 Port Aralığı: 1-1024
@@ -106,7 +137,7 @@ Thread: 200
 
 ## 📊 Sonuçlar ve Raporlama
 
-### Ekran Çıktısı
+### Port Tarama Sonuçları
 
 Tarama sonuçları şu bilgileri içerir:
 
@@ -114,10 +145,19 @@ Tarama sonuçları şu bilgileri içerir:
 - **Tarama Süresi**: İşlem tamamlanma süresi
 - **Port Listesi**: Açık portlar, servis adları ve durumları
 
+### Ağ Tarama Sonuçları
+
+Ağ tarama sonuçları şu bilgileri içerir:
+
+- **İstatistikler**: Toplam IP, taranan IP, aktif IP sayısı
+- **Tarama Süresi**: İşlem tamamlanma süresi
+- **IP Listesi**: Aktif IP'ler, hostname'ler ve response time'lar
+
 ### Excel Raporu
 
-Excel dosyası şu sütunları içerir:
+Excel dosyası tarama tipine göre farklı sütunlar içerir:
 
+#### Port Tarama Excel'i
 | Sütun | Açıklama |
 |-------|----------|
 | Hedef Host | Taranan IP/domain |
@@ -125,6 +165,16 @@ Excel dosyası şu sütunları içerir:
 | Port | Port numarası |
 | Servis | Port üzerinde çalışan servis |
 | Durum | Port durumu (Open/Closed) |
+
+#### Ağ Tarama Excel'i
+| Sütun | Açıklama |
+|-------|----------|
+| Ağ Aralığı | Taranan ağ aralığı |
+| Tarama Zamanı | Tarama başlangıç tarihi/saati |
+| IP Adresi | Aktif IP adresi |
+| Hostname | IP'nin hostname'i |
+| Durum | IP durumu (Active/Inactive) |
+| Response Time | Ping response süresi |
 
 ## 🔧 Konfigürasyon
 
@@ -138,23 +188,26 @@ FLASK_DEBUG=false
 # Port tarama ayarları
 DEFAULT_TIMEOUT=1
 DEFAULT_MAX_THREADS=100
+
+# Ağ tarama ayarları
+NETWORK_DEFAULT_TIMEOUT=1
+NETWORK_DEFAULT_MAX_THREADS=50
 ```
 
 ### Docker Compose Özelleştirme
 
 ```yaml
-version: '3.8'
 services:
   port-scanner:
     build: .
     ports:
-      - "8080:5000"  # Farklı port kullanımı
+      - "5000:5000"
+    container_name: port-scanner-app
+    restart: unless-stopped
     environment:
       - FLASK_ENV=production
-      - DEFAULT_TIMEOUT=2
     volumes:
       - ./logs:/app/logs
-      - ./exports:/app/exports  # Excel dosyaları için
 ```
 
 ## 🛠️ Geliştirme
@@ -177,7 +230,7 @@ port-scanner/
 
 1. **Backend (Python):**
    - `app.py` dosyasına yeni endpoint ekleyin
-   - Port tarama mantığını genişletin
+   - Tarama mantığını genişletin
 
 2. **Frontend (HTML/JS):**
    - `templates/index.html` dosyasını düzenleyin
@@ -197,7 +250,7 @@ port-scanner/
 ### Önemli Notlar
 
 - ⚠️ **Yasal Uyarı**: Bu aracı sadece kendi sistemlerinizde veya izin verilen sistemlerde kullanın
-- 🛡️ **Güvenlik**: Port tarama saldırı olarak algılanabilir, dikkatli kullanın
+- 🛡️ **Güvenlik**: Port ve ağ tarama saldırı olarak algılanabilir, dikkatli kullanın
 - 📝 **Loglama**: Tüm tarama işlemleri loglanır
 - ⏱️ **Rate Limiting**: Çok hızlı tarama yapmaktan kaçının
 
@@ -205,8 +258,9 @@ port-scanner/
 
 1. **Timeout Ayarları**: Çok düşük timeout değerleri kullanmayın
 2. **Thread Sayısı**: Sistem kaynaklarını aşırı yüklemeyin
-3. **Port Aralığı**: Gereksiz portları taramaktan kaçının
-4. **Ağ Trafiği**: Büyük port aralıkları ağ trafiğini artırır
+3. **Ağ Aralığı**: Gereksiz IP'leri taramaktan kaçının
+4. **Port Aralığı**: Gereksiz portları taramaktan kaçının
+5. **Ağ Trafiği**: Büyük ağ aralıkları ağ trafiğini artırır
 
 ## 🐛 Sorun Giderme
 
@@ -227,8 +281,11 @@ docker system prune -a
 docker-compose build --no-cache
 ```
 
-**3. Bağlantı hatası:**
+**3. Ağ tarama çalışmıyor:**
 ```bash
+# Ping komutunu test edin
+ping -c 1 192.168.1.1
+
 # Firewall ayarlarını kontrol edin
 # Antivirus yazılımını geçici olarak devre dışı bırakın
 ```
@@ -236,7 +293,7 @@ docker-compose build --no-cache
 **4. Yavaş tarama:**
 - Thread sayısını artırın
 - Timeout değerini düşürün
-- Port aralığını küçültün
+- Ağ/port aralığını küçültün
 
 ### Log Dosyaları
 
@@ -254,16 +311,24 @@ tail -f logs/app.log
 
 1. **Thread Sayısı**: CPU çekirdek sayısına göre ayarlayın
 2. **Timeout**: Ağ hızına göre optimize edin
-3. **Port Aralığı**: Hedef odaklı tarama yapın
+3. **Ağ Aralığı**: Hedef odaklı tarama yapın
 4. **Sistem Kaynakları**: RAM ve CPU kullanımını izleyin
 
 ### Performans Metrikleri
 
+#### Port Tarama
 | Port Aralığı | Thread | Ortalama Süre |
 |--------------|--------|---------------|
 | 1-1024 | 100 | ~10-30 saniye |
 | 1-65535 | 100 | ~5-10 dakika |
 | 1-1024 | 200 | ~5-15 saniye |
+
+#### Ağ Tarama
+| Ağ Aralığı | Thread | Ortalama Süre |
+|------------|--------|---------------|
+| /24 (254 IP) | 50 | ~30-60 saniye |
+| /16 (65K IP) | 100 | ~10-20 dakika |
+| /8 (16M IP) | 200 | ~2-4 saat |
 
 ## 🤝 Katkıda Bulunma
 
@@ -283,7 +348,6 @@ Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosy
 - [Bootstrap](https://getbootstrap.com/) - CSS framework
 - [Font Awesome](https://fontawesome.com/) - İkonlar
 - [OpenPyXL](https://openpyxl.readthedocs.io/) - Excel işlemleri
-
 
 ---
 

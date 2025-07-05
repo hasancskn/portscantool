@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Port Tarama Aracı</title>
+    <title>Port & IP Tarama Aracı</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -36,6 +36,32 @@
         .header p {
             color: #7f8c8d;
             font-size: 1.1rem;
+        }
+        
+        .nav-tabs {
+            border: none;
+            margin-bottom: 2rem;
+        }
+        
+        .nav-tabs .nav-link {
+            border: none;
+            border-radius: 15px 15px 0 0;
+            margin-right: 0.5rem;
+            padding: 1rem 2rem;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-tabs .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
         }
         
         .form-card {
@@ -141,9 +167,14 @@
             font-size: 0.85rem;
         }
         
-        .status-open {
+        .status-open, .status-active {
             background: #d4edda;
             color: #155724;
+        }
+        
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
         }
         
         .alert {
@@ -181,6 +212,12 @@
             font-size: 0.9rem;
             opacity: 0.9;
         }
+        
+        .help-text {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
     </style>
 </head>
 <body>
@@ -188,62 +225,124 @@
         <div class="main-container">
             <!-- Header -->
             <div class="header">
-                <h1><i class="fas fa-search"></i> Port Tarama Aracı</h1>
-                <p>Güvenli ve hızlı port tarama yapın, sonuçları Excel olarak indirin</p>
+                <h1><i class="fas fa-search"></i> Port & IP Tarama Aracı</h1>
+                <p>Güvenli ve hızlı ağ ve port tarama yapın, sonuçları Excel olarak indirin</p>
             </div>
 
-            <!-- Form Card -->
-            <div class="form-card">
-                <form id="scanForm">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="targetHost" class="form-label">
-                                <i class="fas fa-globe"></i> Hedef Host/IP
-                            </label>
-                            <input type="text" class="form-control" id="targetHost" 
-                                   placeholder="örn: 192.168.1.1 veya example.com" required>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label for="startPort" class="form-label">
-                                <i class="fas fa-arrow-right"></i> Başlangıç Portu
-                            </label>
-                            <input type="number" class="form-control" id="startPort" 
-                                   value="1" min="1" max="65535" required>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label for="endPort" class="form-label">
-                                <i class="fas fa-arrow-left"></i> Bitiş Portu
-                            </label>
-                            <input type="number" class="form-control" id="endPort" 
-                                   value="1024" min="1" max="65535" required>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="timeout" class="form-label">
-                                <i class="fas fa-clock"></i> Timeout (saniye)
-                            </label>
-                            <input type="number" class="form-control" id="timeout" 
-                                   value="1" min="0.1" max="10" step="0.1">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="maxThreads" class="form-label">
-                                <i class="fas fa-cogs"></i> Maksimum Thread
-                            </label>
-                            <input type="number" class="form-control" id="maxThreads" 
-                                   value="100" min="1" max="500">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">&nbsp;</label>
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary" id="scanBtn">
-                                    <i class="fas fa-search"></i> Taramayı Başlat
-                                </button>
+            <!-- Navigation Tabs -->
+            <ul class="nav nav-tabs" id="scanTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="port-tab" data-bs-toggle="tab" data-bs-target="#port-scan" type="button" role="tab">
+                        <i class="fas fa-network-wired"></i> Port Tarama
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="network-tab" data-bs-toggle="tab" data-bs-target="#network-scan" type="button" role="tab">
+                        <i class="fas fa-globe"></i> Ağ Tarama
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="scanTabsContent">
+                <!-- Port Scan Tab -->
+                <div class="tab-pane fade show active" id="port-scan" role="tabpanel">
+                    <div class="form-card">
+                        <form id="portScanForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="targetHost" class="form-label">
+                                        <i class="fas fa-globe"></i> Hedef Host/IP
+                                    </label>
+                                    <input type="text" class="form-control" id="targetHost" 
+                                           placeholder="örn: 192.168.1.1 veya example.com" required>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="startPort" class="form-label">
+                                        <i class="fas fa-arrow-right"></i> Başlangıç Portu
+                                    </label>
+                                    <input type="number" class="form-control" id="startPort" 
+                                           value="1" min="1" max="65535" required>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="endPort" class="form-label">
+                                        <i class="fas fa-arrow-left"></i> Bitiş Portu
+                                    </label>
+                                    <input type="number" class="form-control" id="endPort" 
+                                           value="1024" min="1" max="65535" required>
+                                </div>
                             </div>
-                        </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="portTimeout" class="form-label">
+                                        <i class="fas fa-clock"></i> Timeout (saniye)
+                                    </label>
+                                    <input type="number" class="form-control" id="portTimeout" 
+                                           value="1" min="0.1" max="10" step="0.1">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="portMaxThreads" class="form-label">
+                                        <i class="fas fa-cogs"></i> Maksimum Thread
+                                    </label>
+                                    <input type="number" class="form-control" id="portMaxThreads" 
+                                           value="100" min="1" max="500">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">&nbsp;</label>
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-primary" id="portScanBtn">
+                                            <i class="fas fa-search"></i> Port Taramasını Başlat
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
                     </div>
-                </form>
+                </div>
+
+                <!-- Network Scan Tab -->
+                <div class="tab-pane fade" id="network-scan" role="tabpanel">
+                    <div class="form-card">
+                        <form id="networkScanForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="networkRange" class="form-label">
+                                        <i class="fas fa-network-wired"></i> Ağ Aralığı (CIDR)
+                                    </label>
+                                    <input type="text" class="form-control" id="networkRange" 
+                                           placeholder="örn: 192.168.1.0/24" required>
+                                    <div class="help-text">CIDR formatında ağ aralığı girin (örn: 192.168.1.0/24)</div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="networkTimeout" class="form-label">
+                                        <i class="fas fa-clock"></i> Timeout (saniye)
+                                    </label>
+                                    <input type="number" class="form-control" id="networkTimeout" 
+                                           value="1" min="0.1" max="10" step="0.1">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="networkMaxThreads" class="form-label">
+                                        <i class="fas fa-cogs"></i> Maksimum Thread
+                                    </label>
+                                    <input type="number" class="form-control" id="networkMaxThreads" 
+                                           value="50" min="1" max="200">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">&nbsp;</label>
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-primary" id="networkScanBtn">
+                                            <i class="fas fa-search"></i> Ağ Taramasını Başlat
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
 
             <!-- Loading Spinner -->
@@ -251,7 +350,7 @@
                 <div class="spinner-border" role="status">
                     <span class="visually-hidden">Taranıyor...</span>
                 </div>
-                <p class="mt-3">Portlar taranıyor, lütfen bekleyin...</p>
+                <p class="mt-3" id="loadingText">Taranıyor, lütfen bekleyin...</p>
             </div>
 
             <!-- Progress Bar -->
@@ -267,20 +366,20 @@
                 <div class="row">
                     <div class="col-md-3">
                         <div class="stats-card text-center">
-                            <div class="stats-number" id="totalPorts">0</div>
-                            <div class="stats-label">Toplam Port</div>
+                            <div class="stats-number" id="totalItems">0</div>
+                            <div class="stats-label" id="totalLabel">Toplam</div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="stats-card text-center">
-                            <div class="stats-number" id="scannedPorts">0</div>
-                            <div class="stats-label">Taranan Port</div>
+                            <div class="stats-number" id="scannedItems">0</div>
+                            <div class="stats-label" id="scannedLabel">Taranan</div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="stats-card text-center">
-                            <div class="stats-number" id="openPorts">0</div>
-                            <div class="stats-label">Açık Port</div>
+                            <div class="stats-number" id="foundItems">0</div>
+                            <div class="stats-label" id="foundLabel">Bulunan</div>
                         </div>
                     </div>
                     <div class="col-md-3">
@@ -292,7 +391,7 @@
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4><i class="fas fa-list"></i> Tarama Sonuçları</h4>
+                    <h4><i class="fas fa-list"></i> <span id="resultsTitle">Tarama Sonuçları</span></h4>
                     <button class="btn btn-success" id="exportBtn" style="display: none;">
                         <i class="fas fa-download"></i> Excel İndir
                     </button>
@@ -300,13 +399,7 @@
 
                 <div class="table-responsive">
                     <table class="table table-hover" id="resultsTable">
-                        <thead>
-                            <tr>
-                                <th>Port</th>
-                                <th>Servis</th>
-                                <th>Durum</th>
-                                <th>Açıklama</th>
-                            </tr>
+                        <thead id="resultsTableHead">
                         </thead>
                         <tbody id="resultsTableBody">
                         </tbody>
@@ -315,8 +408,8 @@
 
                 <div id="noResults" class="text-center py-4" style="display: none;">
                     <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">Açık port bulunamadı</h5>
-                    <p class="text-muted">Belirtilen port aralığında açık port tespit edilmedi.</p>
+                    <h5 class="text-muted" id="noResultsTitle">Sonuç bulunamadı</h5>
+                    <p class="text-muted" id="noResultsText">Belirtilen kriterlere uygun sonuç tespit edilmedi.</p>
                 </div>
             </div>
         </div>
@@ -326,16 +419,19 @@
     <script>
         let scanResults = null;
         let startTime = null;
+        let currentScanType = 'port';
 
-        document.getElementById('scanForm').addEventListener('submit', async function(e) {
+        // Port Scan Form
+        document.getElementById('portScanForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            currentScanType = 'port';
             
             const formData = {
                 target_host: document.getElementById('targetHost').value,
                 start_port: parseInt(document.getElementById('startPort').value),
                 end_port: parseInt(document.getElementById('endPort').value),
-                timeout: parseFloat(document.getElementById('timeout').value),
-                max_threads: parseInt(document.getElementById('maxThreads').value)
+                timeout: parseFloat(document.getElementById('portTimeout').value),
+                max_threads: parseInt(document.getElementById('portMaxThreads').value)
             };
 
             // Form validasyonu
@@ -345,7 +441,7 @@
             }
 
             // UI'yi güncelle
-            startScan();
+            startScan('Portlar taranıyor, lütfen bekleyin...');
             
             try {
                 const response = await fetch('/scan', {
@@ -360,9 +456,9 @@
                 
                 if (response.ok) {
                     scanResults = result;
-                    displayResults(result);
+                    displayPortResults(result);
                 } else {
-                    showError(result.error || 'Tarama sırasında bir hata oluştu');
+                    showError(result.error || 'Port tarama sırasında bir hata oluştu');
                 }
             } catch (error) {
                 showError('Bağlantı hatası: ' + error.message);
@@ -371,6 +467,45 @@
             }
         });
 
+        // Network Scan Form
+        document.getElementById('networkScanForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            currentScanType = 'network';
+            
+            const formData = {
+                network_range: document.getElementById('networkRange').value,
+                timeout: parseFloat(document.getElementById('networkTimeout').value),
+                max_threads: parseInt(document.getElementById('networkMaxThreads').value)
+            };
+
+            // UI'yi güncelle
+            startScan('Ağ taranıyor, lütfen bekleyin...');
+            
+            try {
+                const response = await fetch('/scan-network', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    scanResults = result;
+                    displayNetworkResults(result);
+                } else {
+                    showError(result.error || 'Ağ tarama sırasında bir hata oluştu');
+                }
+            } catch (error) {
+                showError('Bağlantı hatası: ' + error.message);
+            } finally {
+                stopScan();
+            }
+        });
+
+        // Export Button
         document.getElementById('exportBtn').addEventListener('click', async function() {
             if (!scanResults) return;
             
@@ -380,7 +515,10 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ scan_results: scanResults })
+                    body: JSON.stringify({ 
+                        scan_type: currentScanType,
+                        scan_results: scanResults 
+                    })
                 });
 
                 if (response.ok) {
@@ -388,7 +526,7 @@
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `port_scan_${scanResults.target_host}_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.xlsx`;
+                    a.download = `scan_${currentScanType}_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.xlsx`;
                     document.body.appendChild(a);
                     a.click();
                     window.URL.revokeObjectURL(url);
@@ -402,10 +540,16 @@
             }
         });
 
-        function startScan() {
+        function startScan(loadingText) {
             startTime = Date.now();
-            document.getElementById('scanBtn').disabled = true;
-            document.getElementById('scanBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Taranıyor...';
+            document.getElementById('loadingText').textContent = loadingText;
+            
+            // Butonları devre dışı bırak
+            document.getElementById('portScanBtn').disabled = true;
+            document.getElementById('networkScanBtn').disabled = true;
+            document.getElementById('portScanBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Taranıyor...';
+            document.getElementById('networkScanBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Taranıyor...';
+            
             document.getElementById('loadingSpinner').style.display = 'block';
             document.getElementById('progressContainer').style.display = 'block';
             document.getElementById('resultsCard').style.display = 'none';
@@ -423,8 +567,12 @@
         }
 
         function stopScan() {
-            document.getElementById('scanBtn').disabled = false;
-            document.getElementById('scanBtn').innerHTML = '<i class="fas fa-search"></i> Taramayı Başlat';
+            // Butonları etkinleştir
+            document.getElementById('portScanBtn').disabled = false;
+            document.getElementById('networkScanBtn').disabled = false;
+            document.getElementById('portScanBtn').innerHTML = '<i class="fas fa-search"></i> Port Taramasını Başlat';
+            document.getElementById('networkScanBtn').innerHTML = '<i class="fas fa-search"></i> Ağ Taramasını Başlat';
+            
             document.getElementById('loadingSpinner').style.display = 'none';
             document.getElementById('progressContainer').style.display = 'none';
             
@@ -434,14 +582,29 @@
             clearInterval(window.progressInterval);
         }
 
-        function displayResults(result) {
+        function displayPortResults(result) {
             // İstatistikleri güncelle
-            document.getElementById('totalPorts').textContent = result.total_ports;
-            document.getElementById('scannedPorts').textContent = result.scanned_ports;
-            document.getElementById('openPorts').textContent = result.open_ports_count;
+            document.getElementById('totalItems').textContent = result.total_ports;
+            document.getElementById('scannedItems').textContent = result.scanned_ports;
+            document.getElementById('foundItems').textContent = result.open_ports_count;
+            document.getElementById('totalLabel').textContent = 'Toplam Port';
+            document.getElementById('scannedLabel').textContent = 'Taranan Port';
+            document.getElementById('foundLabel').textContent = 'Açık Port';
+            document.getElementById('resultsTitle').textContent = 'Port Tarama Sonuçları';
             
             const scanDuration = ((Date.now() - startTime) / 1000).toFixed(1);
             document.getElementById('scanTime').textContent = scanDuration + 's';
+
+            // Tablo başlığını güncelle
+            const thead = document.getElementById('resultsTableHead');
+            thead.innerHTML = `
+                <tr>
+                    <th>Port</th>
+                    <th>Servis</th>
+                    <th>Durum</th>
+                    <th>Açıklama</th>
+                </tr>
+            `;
 
             // Tabloyu güncelle
             const tbody = document.getElementById('resultsTableBody');
@@ -462,6 +625,60 @@
                 document.getElementById('exportBtn').style.display = 'block';
             } else {
                 document.getElementById('noResults').style.display = 'block';
+                document.getElementById('noResultsTitle').textContent = 'Açık port bulunamadı';
+                document.getElementById('noResultsText').textContent = 'Belirtilen port aralığında açık port tespit edilmedi.';
+                document.getElementById('resultsTable').style.display = 'none';
+                document.getElementById('exportBtn').style.display = 'block';
+            }
+
+            document.getElementById('resultsCard').style.display = 'block';
+        }
+
+        function displayNetworkResults(result) {
+            // İstatistikleri güncelle
+            document.getElementById('totalItems').textContent = result.total_ips;
+            document.getElementById('scannedItems').textContent = result.scanned_ips;
+            document.getElementById('foundItems').textContent = result.active_ips_count;
+            document.getElementById('totalLabel').textContent = 'Toplam IP';
+            document.getElementById('scannedLabel').textContent = 'Taranan IP';
+            document.getElementById('foundLabel').textContent = 'Aktif IP';
+            document.getElementById('resultsTitle').textContent = 'Ağ Tarama Sonuçları';
+            
+            const scanDuration = ((Date.now() - startTime) / 1000).toFixed(1);
+            document.getElementById('scanTime').textContent = scanDuration + 's';
+
+            // Tablo başlığını güncelle
+            const thead = document.getElementById('resultsTableHead');
+            thead.innerHTML = `
+                <tr>
+                    <th>IP Adresi</th>
+                    <th>Hostname</th>
+                    <th>Durum</th>
+                    <th>Response Time</th>
+                </tr>
+            `;
+
+            // Tabloyu güncelle
+            const tbody = document.getElementById('resultsTableBody');
+            tbody.innerHTML = '';
+
+            if (result.active_ips && result.active_ips.length > 0) {
+                result.active_ips.forEach(ip => {
+                    const row = tbody.insertRow();
+                    row.innerHTML = `
+                        <td><strong>${ip.ip}</strong></td>
+                        <td>${ip.hostname}</td>
+                        <td><span class="status-badge status-active">${ip.status}</span></td>
+                        <td>${ip.response_time}</td>
+                    `;
+                });
+                document.getElementById('noResults').style.display = 'none';
+                document.getElementById('resultsTable').style.display = 'table';
+                document.getElementById('exportBtn').style.display = 'block';
+            } else {
+                document.getElementById('noResults').style.display = 'block';
+                document.getElementById('noResultsTitle').textContent = 'Aktif IP bulunamadı';
+                document.getElementById('noResultsText').textContent = 'Belirtilen ağ aralığında aktif IP tespit edilmedi.';
                 document.getElementById('resultsTable').style.display = 'none';
                 document.getElementById('exportBtn').style.display = 'block';
             }
@@ -502,7 +719,7 @@
                 <i class="fas fa-exclamation-triangle"></i> ${message}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             `;
-            document.querySelector('.main-container').insertBefore(alertDiv, document.querySelector('.form-card'));
+            document.querySelector('.main-container').insertBefore(alertDiv, document.querySelector('.nav-tabs'));
         }
 
         // Port aralığı validasyonu
@@ -519,6 +736,13 @@
             const startPort = parseInt(document.getElementById('startPort').value);
             if (endPort < startPort) {
                 document.getElementById('startPort').value = endPort;
+            }
+        });
+
+        // Network range örnekleri
+        document.getElementById('networkRange').addEventListener('focus', function() {
+            if (!this.value) {
+                this.placeholder = '192.168.1.0/24';
             }
         });
     </script>
