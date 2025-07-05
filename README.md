@@ -18,7 +18,7 @@ Modern ve kullanıcı dostu web tabanlı port tarama aracı. Güvenli ve hızlı
 
 1. **Projeyi klonlayın:**
 ```bash
-git clone https://github.com/kullaniciadi/port-scanner.git
+git clone https://github.com/hasancskn/portscantool.git
 cd port-scanner
 ```
 
