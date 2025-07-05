@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Port Tarama Aracı</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #2c3e50;
+        }
+        
+        .header h1 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(86, 171, 47, 0.3);
+        }
+        
+        .results-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        
+        .progress-container {
+            margin: 1rem 0;
+            display: none;
+        }
+        
+        .progress {
+            height: 25px;
+            border-radius: 15px;
+            background: #f8f9fa;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+        }
+        
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .table thead th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        .status-open {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+        
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            color: #667eea;
+        }
+        
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stats-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stats-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-container">
+            <!-- Header -->
+            <div class="header">
+                <h1><i class="fas fa-search"></i> Port Tarama Aracı</h1>
+                <p>Güvenli ve hızlı port tarama yapın, sonuçları Excel olarak indirin</p>
+            </div>
+
+            <!-- Form Card -->
+            <div class="form-card">
+                <form id="scanForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="targetHost" class="form-label">
+                                <i class="fas fa-globe"></i> Hedef Host/IP
+                            </label>
+                            <input type="text" class="form-control" id="targetHost" 
+                                   placeholder="örn: 192.168.1.1 veya example.com" required>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="startPort" class="form-label">
+                                <i class="fas fa-arrow-right"></i> Başlangıç Portu
+                            </label>
+                            <input type="number" class="form-control" id="startPort" 
+                                   value="1" min="1" max="65535" required>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="endPort" class="form-label">
+                                <i class="fas fa-arrow-left"></i> Bitiş Portu
+                            </label>
+                            <input type="number" class="form-control" id="endPort" 
+                                   value="1024" min="1" max="65535" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="timeout" class="form-label">
+                                <i class="fas fa-clock"></i> Timeout (saniye)
+                            </label>
+                            <input type="number" class="form-control" id="timeout" 
+                                   value="1" min="0.1" max="10" step="0.1">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="maxThreads" class="form-label">
+                                <i class="fas fa-cogs"></i> Maksimum Thread
+                            </label>
+                            <input type="number" class="form-control" id="maxThreads" 
+                                   value="100" min="1" max="500">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary" id="scanBtn">
+                                    <i class="fas fa-search"></i> Taramayı Başlat
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Taranıyor...</span>
+                </div>
+                <p class="mt-3">Portlar taranıyor, lütfen bekleyin...</p>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-container" id="progressContainer">
+                <div class="progress">
+                    <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                </div>
+                <p class="text-center mt-2" id="progressText">Hazırlanıyor...</p>
+            </div>
+
+            <!-- Results Card -->
+            <div class="results-card" id="resultsCard">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stats-card text-center">
+                            <div class="stats-number" id="totalPorts">0</div>
+                            <div class="stats-label">Toplam Port</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stats-card text-center">
+                            <div class="stats-number" id="scannedPorts">0</div>
+                            <div class="stats-label">Taranan Port</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stats-card text-center">
+                            <div class="stats-number" id="openPorts">0</div>
+                            <div class="stats-label">Açık Port</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stats-card text-center">
+                            <div class="stats-number" id="scanTime">0s</div>
+                            <div class="stats-label">Tarama Süresi</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4><i class="fas fa-list"></i> Tarama Sonuçları</h4>
+                    <button class="btn btn-success" id="exportBtn" style="display: none;">
+                        <i class="fas fa-download"></i> Excel İndir
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover" id="resultsTable">
+                        <thead>
+                            <tr>
+                                <th>Port</th>
+                                <th>Servis</th>
+                                <th>Durum</th>
+                                <th>Açıklama</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTableBody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="noResults" class="text-center py-4" style="display: none;">
+                    <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Açık port bulunamadı</h5>
+                    <p class="text-muted">Belirtilen port aralığında açık port tespit edilmedi.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let scanResults = null;
+        let startTime = null;
+
+        document.getElementById('scanForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                target_host: document.getElementById('targetHost').value,
+                start_port: parseInt(document.getElementById('startPort').value),
+                end_port: parseInt(document.getElementById('endPort').value),
+                timeout: parseFloat(document.getElementById('timeout').value),
+                max_threads: parseInt(document.getElementById('maxThreads').value)
+            };
+
+            // Form validasyonu
+            if (formData.start_port > formData.end_port) {
+                alert('Başlangıç portu bitiş portundan büyük olamaz!');
+                return;
+            }
+
+            // UI'yi güncelle
+            startScan();
+            
+            try {
+                const response = await fetch('/scan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    scanResults = result;
+                    displayResults(result);
+                } else {
+                    showError(result.error || 'Tarama sırasında bir hata oluştu');
+                }
+            } catch (error) {
+                showError('Bağlantı hatası: ' + error.message);
+            } finally {
+                stopScan();
+            }
+        });
+
+        document.getElementById('exportBtn').addEventListener('click', async function() {
+            if (!scanResults) return;
+            
+            try {
+                const response = await fetch('/export-excel', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ scan_results: scanResults })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `port_scan_${scanResults.target_host}_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                } else {
+                    const error = await response.json();
+                    alert('Excel indirme hatası: ' + error.error);
+                }
+            } catch (error) {
+                alert('Excel indirme hatası: ' + error.message);
+            }
+        });
+
+        function startScan() {
+            startTime = Date.now();
+            document.getElementById('scanBtn').disabled = true;
+            document.getElementById('scanBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Taranıyor...';
+            document.getElementById('loadingSpinner').style.display = 'block';
+            document.getElementById('progressContainer').style.display = 'block';
+            document.getElementById('resultsCard').style.display = 'none';
+            
+            // Progress bar animasyonu
+            const progressBar = document.querySelector('.progress-bar');
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 90) progress = 90;
+                progressBar.style.width = progress + '%';
+            }, 500);
+            
+            window.progressInterval = interval;
+        }
+
+        function stopScan() {
+            document.getElementById('scanBtn').disabled = false;
+            document.getElementById('scanBtn').innerHTML = '<i class="fas fa-search"></i> Taramayı Başlat';
+            document.getElementById('loadingSpinner').style.display = 'none';
+            document.getElementById('progressContainer').style.display = 'none';
+            
+            // Progress bar'ı tamamla
+            const progressBar = document.querySelector('.progress-bar');
+            progressBar.style.width = '100%';
+            clearInterval(window.progressInterval);
+        }
+
+        function displayResults(result) {
+            // İstatistikleri güncelle
+            document.getElementById('totalPorts').textContent = result.total_ports;
+            document.getElementById('scannedPorts').textContent = result.scanned_ports;
+            document.getElementById('openPorts').textContent = result.open_ports_count;
+            
+            const scanDuration = ((Date.now() - startTime) / 1000).toFixed(1);
+            document.getElementById('scanTime').textContent = scanDuration + 's';
+
+            // Tabloyu güncelle
+            const tbody = document.getElementById('resultsTableBody');
+            tbody.innerHTML = '';
+
+            if (result.open_ports && result.open_ports.length > 0) {
+                result.open_ports.forEach(port => {
+                    const row = tbody.insertRow();
+                    row.innerHTML = `
+                        <td><strong>${port.port}</strong></td>
+                        <td>${port.service}</td>
+                        <td><span class="status-badge status-open">${port.status}</span></td>
+                        <td>${getPortDescription(port.port)}</td>
+                    `;
+                });
+                document.getElementById('noResults').style.display = 'none';
+                document.getElementById('resultsTable').style.display = 'table';
+                document.getElementById('exportBtn').style.display = 'block';
+            } else {
+                document.getElementById('noResults').style.display = 'block';
+                document.getElementById('resultsTable').style.display = 'none';
+                document.getElementById('exportBtn').style.display = 'block';
+            }
+
+            document.getElementById('resultsCard').style.display = 'block';
+        }
+
+        function getPortDescription(port) {
+            const descriptions = {
+                21: 'File Transfer Protocol - Dosya transferi',
+                22: 'Secure Shell - Güvenli uzak erişim',
+                23: 'Telnet - Uzak terminal erişimi',
+                25: 'Simple Mail Transfer Protocol - E-posta gönderimi',
+                53: 'Domain Name System - Alan adı çözümleme',
+                80: 'Hypertext Transfer Protocol - Web sunucusu',
+                110: 'Post Office Protocol - E-posta alma',
+                143: 'Internet Message Access Protocol - E-posta erişimi',
+                443: 'HTTP Secure - Güvenli web sunucusu',
+                993: 'IMAP SSL - Güvenli e-posta erişimi',
+                995: 'POP3 SSL - Güvenli e-posta alma',
+                1433: 'Microsoft SQL Server - Veritabanı',
+                3306: 'MySQL - Veritabanı',
+                3389: 'Remote Desktop Protocol - Uzak masaüstü',
+                5432: 'PostgreSQL - Veritabanı',
+                5900: 'Virtual Network Computing - Uzak ekran paylaşımı',
+                6379: 'Redis - Bellek içi veritabanı',
+                8080: 'HTTP Proxy - Web proxy sunucusu',
+                8443: 'HTTPS Alternative - Alternatif güvenli web',
+                27017: 'MongoDB - NoSQL veritabanı'
+            };
+            return descriptions[port] || 'Bilinmeyen servis';
+        }
+
+        function showError(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                <i class="fas fa-exclamation-triangle"></i> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.main-container').insertBefore(alertDiv, document.querySelector('.form-card'));
+        }
+
+        // Port aralığı validasyonu
+        document.getElementById('startPort').addEventListener('change', function() {
+            const startPort = parseInt(this.value);
+            const endPort = parseInt(document.getElementById('endPort').value);
+            if (startPort > endPort) {
+                document.getElementById('endPort').value = startPort;
+            }
+        });
+
+        document.getElementById('endPort').addEventListener('change', function() {
+            const endPort = parseInt(this.value);
+            const startPort = parseInt(document.getElementById('startPort').value);
+            if (endPort < startPort) {
+                document.getElementById('startPort').value = endPort;
+            }
+        });
+    </script>
+</body>
+</html> 

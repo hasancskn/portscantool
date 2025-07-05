@@ -1,0 +1,17 @@
+services:
+  port-scanner:
+    build: .
+    ports:
+      - "5000:5000"
+    container_name: port-scanner-app
+    restart: unless-stopped
+    environment:
+      - FLASK_ENV=production
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - port-scanner-network
+
+networks:
+  port-scanner-network:
+    driver: bridge 
