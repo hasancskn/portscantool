@@ -1,4 +1,4 @@
-# 🚀 Advanced Port Scanner - Gelişmiş Port Tarama Sistemi
+# 🚀 Advanced IP-Port Scanner - Gelişmiş IP-Port Tarama Sistemi
 
 Güvenli ve kapsamlı port tarama sistemi. Nmap tabanlı gelişmiş tarama, zamanlanmış görevler, anomali tespiti ve alarm sistemi ile birlikte gelir.
 
