@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Zamanlanmış Taramalar</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        html, body {
+            overflow-x: hidden;
+        }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            /* min-height: 100vh; */
+        }
+        .scheduler-container {
+            background: rgba(255,255,255,0.97);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            margin: 1.5rem auto;
+            padding: 1.5rem 1.5rem;
+            max-width: 1400px;
+            width: 95vw;
+            min-width: 350px;
+        }
+        @media (max-width: 1200px) {
+            .scheduler-container {
+                max-width: 99vw;
+                padding: 1rem 0.5rem;
+            }
+        }
+        @media (max-width: 768px) {
+            .scheduler-container {
+                padding: 0.5rem 0.2rem;
+            }
+            .form-section {
+                padding: 0.5rem;
+            }
+        }
+        #customIntervalDiv[hidden] {
+            display: none !important;
+        }
+        .scheduler-title {
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 2rem;
+        }
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .table-responsive-custom {
+            overflow-x: auto;
+            width: 100%;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            background: white;
+        }
+        .table-responsive-custom table {
+            min-width: 900px;
+        }
+        .table-responsive-custom th, .table-responsive-custom td {
+            max-width: 180px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
+        }
+        .table thead th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-weight: 600;
+            text-align: center;
+        }
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        .user-info {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        .user-dropdown {
+            display: none;
+            position: absolute;
+            top: 110%;
+            right: 0;
+            min-width: 220px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+            z-index: 100;
+            padding: 0.7rem 1rem 0.7rem 1rem;
+            transition: all 0.2s;
+        }
+        .user-dropdown.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="scheduler-container">
+            <div class="d-flex justify-content-end align-items-center mb-3">
+                <div class="user-info">
+                    <div class="user-details" onclick="toggleUserDropdown()" style="cursor: pointer;">
+                        <i class="fas fa-user-circle"></i>
+                        <span class="username">{{ current_user.username }}</span>
+                        {% if current_user.is_admin %}
+                            <span class="badge bg-warning text-dark">Admin</span>
+                        {% endif %}
+                        <i class="fas fa-chevron-down" style="font-size: 0.8rem; color: #667eea;"></i>
+                    </div>
+                    <div class="user-dropdown" id="userDropdown">
+                        <a href="{{ url_for('change_password') }}" class="dropdown-item">
+                            <i class="fas fa-key"></i> Şifre Değiştir
+                        </a>
+                        {% if current_user.is_admin %}
+                        <a href="{{ url_for('user_management') }}" class="dropdown-item">
+                            <i class="fas fa-users-cog"></i> Kullanıcı Yönetimi
+                        </a>
+                        {% endif %}
+                        <a href="{{ url_for('logout') }}" class="dropdown-item logout">
+                            <i class="fas fa-sign-out-alt"></i> Çıkış Yap
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="scheduler-title"><i class="fas fa-clock"></i> Zamanlanmış Taramalar</h1>
+                <a href="/" class="btn btn-outline-secondary"><i class="fas fa-home"></i> Ana Sayfa</a>
+            </div>
+            
+            <!-- Monitor kullanıcıları için form gizli -->
+            {% if current_user.role != 'monitor' %}
+            <div class="form-section mb-4">
+                <h5 class="mb-3">Yeni Zamanlanmış Tarama Ekle</h5>
+                <form id="addSchedulerForm" class="row g-3 flex-column align-items-center">
+                    <div class="col-12 col-md-8 mb-2">
+                        <label class="form-label">Tarama Adı</label>
+                        <input type="text" class="form-control" id="scanName" required>
+                    </div>
+                    <div class="col-12 col-md-8 mb-2">
+                        <label class="form-label">Tarama Tipi</label>
+                        <select class="form-select" id="scanType" required>
+                            <option value="port" selected>Port Tarama</option>
+                            <option value="network">Ağ Tarama</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-8 mb-2" id="targetHostsDiv">
+                        <label class="form-label">Hedef Hostlar (virgülle ayır)</label>
+                        <input type="text" class="form-control" id="targetHosts" placeholder="192.168.1.1,example.com">
+                    </div>
+                    <div class="col-12 col-md-8 mb-2" id="portRangeDiv">
+                        <label class="form-label">Port Aralığı</label>
+                        <input type="text" class="form-control" id="portRange" placeholder="1-1024" value="1-1024">
+                    </div>
+                    <div class="col-12 col-md-8 mb-2 d-none" id="networkRangeDiv">
+                        <label class="form-label">Ağ Aralığı (CIDR)</label>
+                        <input type="text" class="form-control" id="networkRange" placeholder="192.168.1.0/24">
+                    </div>
+                    <div class="col-12 col-md-8 mb-2">
+                        <label class="form-label">Tarama Sıklığı <span class="text-muted" style="font-size:0.9em;">(min 60sn)</span></label>
+                        <select class="form-select" id="intervalSelect">
+                            <option value="60">1 dakika</option>
+                            <option value="300">5 dakika</option>
+                            <option value="900">15 dakika</option>
+                            <option value="3600" selected>1 saat</option>
+                            <option value="86400">1 gün</option>
+                            <option value="custom">Özel</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-8 mb-2 d-flex align-items-end" id="customIntervalDiv" style="gap:8px;" hidden>
+                        <input type="number" class="form-control" id="scheduleInterval" min="60" value="3600" style="max-width:120px;">
+                        <span class="mb-2">sn</span>
+                    </div>
+                    <div class="col-12 d-flex justify-content-center mt-2">
+                        <button type="submit" class="btn btn-success rounded-pill px-4 shadow-sm" style="font-weight:600; min-width:120px;"><i class="fas fa-plus-circle me-1"></i> Ekle</button>
+                    </div>
+                </form>
+            </div>
+            {% else %}
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle"></i>
+                <strong>Monitor Kullanıcısı:</strong> Zamanlanmış tarama ekleme yetkiniz bulunmamaktadır. Sadece mevcut taramaları görüntüleyebilirsiniz.
+            </div>
+            {% endif %}
+            
+            <div>
+                <h5 class="mb-3">Kayıtlı Zamanlanmış Taramalar</h5>
+                <div class="table-responsive-custom">
+                  <table class="table table-hover">
+                      <thead>
+                          <tr>
+                              <th>Adı</th>
+                              <th>Tip</th>
+                              <th>Hedefler / Ağ</th>
+                              <th>Port Aralığı</th>
+                              <th>Aralık (sn)</th>
+                              <th>Son Çalışma</th>
+                              <th>Sonraki Çalışma</th>
+                              <th>Oluşturulma</th>
+                              {% if current_user.role != 'monitor' %}
+                              <th></th>
+                              {% endif %}
+                          </tr>
+                      </thead>
+                      <tbody id="schedulerTableBody">
+                          <!-- Satırlar buraya gelecek -->
+                      </tbody>
+                  </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Tarama tipi seçimine göre alanları göster/gizle
+        document.getElementById('scanType').addEventListener('change', function() {
+            if (this.value === 'port') {
+                document.getElementById('portRangeDiv').classList.remove('d-none');
+                document.getElementById('networkRangeDiv').classList.add('d-none');
+                document.getElementById('targetHostsDiv').classList.remove('d-none');
+                document.getElementById('targetHosts').placeholder = '192.168.1.1,example.com';
+            } else {
+                document.getElementById('portRangeDiv').classList.add('d-none');
+                document.getElementById('networkRangeDiv').classList.remove('d-none');
+                document.getElementById('targetHostsDiv').classList.add('d-none');
+            }
+        });
+
+        // Tarama sıklığı dropdownu ile custom input göster/gizle ve min değeri uygula
+        const intervalSelect = document.getElementById('intervalSelect');
+        const customIntervalDiv = document.getElementById('customIntervalDiv');
+        const scheduleInterval = document.getElementById('scheduleInterval');
+        intervalSelect.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                customIntervalDiv.hidden = false;
+                scheduleInterval.required = true;
+                scheduleInterval.value = Math.max(60, parseInt(scheduleInterval.value) || 3600);
+            } else {
+                customIntervalDiv.hidden = true;
+                scheduleInterval.required = false;
+            }
+        });
+        scheduleInterval.addEventListener('input', function() {
+            if (parseInt(this.value) < 60) this.value = 60;
+        });
+
+        async function fetchSchedulers() {
+            const res = await fetch('/scheduled-scans');
+            const data = await res.json();
+            const tbody = document.getElementById('schedulerTableBody');
+            tbody.innerHTML = '';
+            
+            // Kullanıcı rolünü JavaScript'e aktar
+            const userRole = '{{ current_user.role }}';
+            const isMonitor = userRole === 'monitor';
+            
+            if (Array.isArray(data) && data.length > 0) {
+                data.forEach(scan => {
+                    const deleteButton = !isMonitor ? 
+                        `<td><button class="btn btn-sm btn-danger" onclick="deleteScheduler(${scan.id})"><i class="fas fa-trash"></i></button></td>` : '';
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${scan.name}</td>
+                            <td>${scan.scan_type === 'network' ? 'Ağ Tarama' : (scan.scan_type === 'port' ? 'Port Tarama' : scan.scan_type)}</td>
+                            <td>${scan.scan_type === 'network' ? (scan.network_range || '-') : (Array.isArray(scan.target_hosts) ? scan.target_hosts.join('<br>') : (scan.target_hosts || '-'))}</td>
+                            <td>${scan.scan_type === 'network' ? '-' : (scan.port_range || '-')}</td>
+                            <td>${scan.schedule_interval}</td>
+                            <td>${formatDate(scan.last_run)}</td>
+                            <td>${formatDate(scan.next_run)}</td>
+                            <td>${formatDate(scan.created_at)}</td>
+                            ${deleteButton}
+                        </tr>
+                    `;
+                });
+            } else {
+                const colspan = !isMonitor ? '9' : '8';
+                tbody.innerHTML = `<tr><td colspan="${colspan}" class="text-center text-muted">Kayıtlı zamanlanmış tarama yok.</td></tr>`;
+            }
+        }
+
+        async function deleteScheduler(id) {
+            if (!confirm('Bu zamanlanmış taramayı silmek istediğinize emin misiniz?')) return;
+            const res = await fetch(`/scheduled-scans/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                fetchSchedulers();
+            } else {
+                alert(data.error || 'Silme işlemi başarısız!');
+            }
+        }
+
+        // Monitor kullanıcıları için form submit event listener'ı ekleme
+        const userRole = '{{ current_user.role }}';
+        if (userRole !== 'monitor') {
+            document.getElementById('addSchedulerForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const name = document.getElementById('scanName').value.trim();
+                const scanType = document.getElementById('scanType').value;
+                let scheduleIntervalValue = intervalSelect.value === 'custom' ? parseInt(scheduleInterval.value) : parseInt(intervalSelect.value);
+                let body = { name, scan_type: scanType, schedule_interval: scheduleIntervalValue };
+                if (scanType === 'port') {
+                    body.target_hosts = document.getElementById('targetHosts').value.split(',').map(h => h.trim()).filter(Boolean);
+                    let portRangeVal = document.getElementById('portRange').value.trim();
+                    body.port_range = portRangeVal ? portRangeVal : '1-1024';
+                    body.network_range = '';
+                } else {
+                    body.target_hosts = [];
+                    body.port_range = '';
+                    body.network_range = document.getElementById('networkRange').value.trim();
+                }
+                const res = await fetch('/scheduled-scans', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    this.reset();
+                    document.getElementById('scanType').value = 'port';
+                    document.getElementById('scanType').dispatchEvent(new Event('change'));
+                    intervalSelect.value = '3600';
+                    customIntervalDiv.hidden = true;
+                    fetchSchedulers();
+                } else {
+                    alert(data.error || 'Ekleme işlemi başarısız!');
+                }
+            });
+        }
+
+        // Sayfa yüklendiğinde zamanlanmış taramaları getir
+        fetchSchedulers();
+        // Varsayılan olarak port tarama alanlarını göster
+        document.getElementById('scanType').dispatchEvent(new Event('change'));
+
+        // Tablo tarihlerini UTC'den local'e çevirerek göster
+        function formatDate(dateStr) {
+            if (!dateStr || dateStr === '-') return '-';
+            // ISO string ise UTC olarak parse et
+            let d = new Date(dateStr);
+            if (isNaN(d)) return dateStr;
+            // toLocaleString ile local saat diliminde göster
+            return d.toLocaleString('tr-TR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+    </script>
+    <script>
+    function toggleUserDropdown() {
+        const dropdown = document.getElementById('userDropdown');
+        dropdown.classList.toggle('show');
+    }
+    document.addEventListener('click', function(event) {
+        const userInfo = document.querySelector('.user-info');
+        const dropdown = document.getElementById('userDropdown');
+        if (dropdown && dropdown.classList.contains('show')) {
+            if (!userInfo.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        }
+    });
+    if (document.getElementById('userDropdown')) {
+        document.getElementById('userDropdown').addEventListener('click', function(event) {
+            event.stopPropagation();
+        });
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        var dropdown = document.getElementById('userDropdown');
+        if (dropdown) dropdown.classList.remove('show');
+    });
+    </script>
+</body>
+</html> 

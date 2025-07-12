@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Port & IP Tarama Aracı</title>
+    <title>IP & Port Tarama Aracı</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -218,15 +218,127 @@
             color: #6c757d;
             margin-top: 0.25rem;
         }
+
+        .user-info {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        
+        .user-info .user-details {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .user-info .user-details:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .user-info .username {
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+            min-width: 200px;
+            z-index: 1000;
+            display: none;
+            margin-top: 0.5rem;
+            border: 1px solid #e9ecef;
+        }
+        
+        .user-dropdown.show {
+            display: block !important;
+        }
+        
+        .user-dropdown .dropdown-item {
+            padding: 0.75rem 1rem;
+            color: #333;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .user-dropdown .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        
+        .user-dropdown .dropdown-item:hover {
+            background: #f8f9fa;
+            color: #667eea;
+        }
+        
+        .user-dropdown .dropdown-item.logout {
+            color: #dc3545;
+        }
+        
+        .user-dropdown .dropdown-item.logout:hover {
+            background: #fee;
+            color: #dc3545;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="main-container">
+            <div class="d-flex justify-content-end align-items-center mb-3">
+                <div class="user-info">
+                    <div class="user-details" onclick="toggleUserDropdown()" style="cursor: pointer;">
+                        <i class="fas fa-user-circle"></i>
+                        <span class="username">{{ current_user.username }}</span>
+                        {% if current_user.is_admin %}
+                            <span class="badge bg-warning text-dark">Admin</span>
+                        {% endif %}
+                        <i class="fas fa-chevron-down" style="font-size: 0.8rem; color: #667eea;"></i>
+                    </div>
+                    <div class="user-dropdown" id="userDropdown">
+                        <a href="{{ url_for('change_password') }}" class="dropdown-item">
+                            <i class="fas fa-key"></i>
+                            Şifre Değiştir
+                        </a>
+                        {% if current_user.is_admin %}
+                        <a href="{{ url_for('user_management') }}" class="dropdown-item">
+                            <i class="fas fa-users-cog"></i>
+                            Kullanıcı Yönetimi
+                        </a>
+                        {% endif %}
+                        <a href="{{ url_for('logout') }}" class="dropdown-item logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Çıkış Yap
+                        </a>
+                    </div>
+                </div>
+            </div>
+
             <!-- Header -->
-            <div class="header">
-                <h1><i class="fas fa-search"></i> Port & IP Tarama Aracı</h1>
-                <p>Güvenli ve hızlı ağ ve port tarama yapın, sonuçları Excel olarak indirin</p>
+            <div class="header d-flex justify-content-between align-items-center">
+                <div>
+                    <h1><i class="fas fa-search"></i> IP & Port Tarama Aracı</h1>
+                    <p>Güvenli ve hızlı ağ ve port tarama yapın, sonuçları Excel olarak indirin</p>
+                </div>
+                <a href="/dashboard" class="btn btn-outline-primary btn-lg" style="border-radius: 30px; font-weight: 600;">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
             </div>
 
             <!-- Navigation Tabs -->
@@ -240,6 +352,16 @@
                     <button class="nav-link" id="network-tab" data-bs-toggle="tab" data-bs-target="#network-scan" type="button" role="tab">
                         <i class="fas fa-globe"></i> Ağ Tarama
                     </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="scheduler-tab" href="/scheduler" role="tab">
+                        <i class="fas fa-clock"></i> Zamanlanmış Taramalar
+                    </a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="alert-rules-tab" href="/alert-rules" role="tab">
+                        <i class="fas fa-bell"></i> Alarm Kuralları
+                    </a>
                 </li>
             </ul>
 
@@ -585,7 +707,7 @@
         function displayPortResults(result) {
             // İstatistikleri güncelle
             document.getElementById('totalItems').textContent = result.total_ports;
-            document.getElementById('scannedItems').textContent = result.scanned_ports;
+            document.getElementById('scannedItems').textContent = result.scanned_ports || result.total_ports || 0;
             document.getElementById('foundItems').textContent = result.open_ports_count;
             document.getElementById('totalLabel').textContent = 'Toplam Port';
             document.getElementById('scannedLabel').textContent = 'Taranan Port';
@@ -602,6 +724,8 @@
                     <th>Port</th>
                     <th>Servis</th>
                     <th>Durum</th>
+                    <th>Versiyon</th>
+                    <th>Banner</th>
                     <th>Açıklama</th>
                 </tr>
             `;
@@ -610,13 +734,18 @@
             const tbody = document.getElementById('resultsTableBody');
             tbody.innerHTML = '';
 
-            if (result.open_ports && result.open_ports.length > 0) {
-                result.open_ports.forEach(port => {
+            // scan_results içinden sadece açık portları filtrele
+            const openPorts = (result.scan_results || []).filter(p => p.state === 'open');
+
+            if (openPorts.length > 0) {
+                openPorts.forEach(port => {
                     const row = tbody.insertRow();
                     row.innerHTML = `
                         <td><strong>${port.port}</strong></td>
                         <td>${port.service}</td>
-                        <td><span class="status-badge status-open">${port.status}</span></td>
+                        <td><span class="status-badge status-open">${port.state}</span></td>
+                        <td>${port.version || ''}</td>
+                        <td>${port.banner || ''}</td>
                         <td>${getPortDescription(port.port)}</td>
                     `;
                 });
@@ -744,6 +873,32 @@
             if (!this.value) {
                 this.placeholder = '192.168.1.0/24';
             }
+        });
+
+        // User dropdown toggle
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown) {
+                dropdown.classList.toggle('show');
+                console.log('Dropdown toggled:', dropdown.classList.contains('show'));
+            }
+        }
+
+        // Close dropdown if clicked outside
+        document.addEventListener('click', function(event) {
+            const userInfo = document.querySelector('.user-info');
+            const dropdown = document.getElementById('userDropdown');
+            
+            if (dropdown && dropdown.classList.contains('show')) {
+                if (!userInfo.contains(event.target)) {
+                    dropdown.classList.remove('show');
+                }
+            }
+        });
+
+        // Prevent dropdown from closing when clicking inside it
+        document.getElementById('userDropdown').addEventListener('click', function(event) {
+            event.stopPropagation();
         });
     </script>
 </body>

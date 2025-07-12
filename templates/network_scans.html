@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Tüm Taramalar</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .main-container {
+            background: rgba(255,255,255,0.97);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            margin: 2rem auto;
+            padding: 2rem 2.5rem;
+            max-width: 1200px;
+        }
+        .user-info {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        .user-info .user-details {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .user-info .user-details:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+        .user-info .username {
+            font-weight: 600;
+            color: #667eea;
+        }
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+            min-width: 200px;
+            z-index: 1000;
+            display: none;
+            margin-top: 0.5rem;
+            border: 1px solid #e9ecef;
+        }
+        .user-dropdown.show {
+            display: block !important;
+        }
+        .user-dropdown .dropdown-item {
+            padding: 0.75rem 1rem;
+            color: #333;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .user-dropdown .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        .user-dropdown .dropdown-item:hover {
+            background: #f8f9fa;
+            color: #667eea;
+        }
+        .user-dropdown .dropdown-item.logout {
+            color: #dc3545;
+        }
+        .user-dropdown .dropdown-item.logout:hover {
+            background: #fee;
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-container">
+            <div class="d-flex justify-content-end align-items-center mb-3">
+                <div class="user-info">
+                    <div class="user-details" onclick="toggleUserDropdown()" style="cursor: pointer;">
+                        <i class="fas fa-user-circle"></i>
+                        <span class="username">{{ current_user.username }}</span>
+                        {% if current_user.is_admin %}
+                            <span class="badge bg-warning text-dark">Admin</span>
+                        {% endif %}
+                        <i class="fas fa-chevron-down" style="font-size: 0.8rem; color: #667eea;"></i>
+                    </div>
+                    <div class="user-dropdown" id="userDropdown">
+                        <a href="{{ url_for('change_password') }}" class="dropdown-item">
+                            <i class="fas fa-key"></i> Şifre Değiştir
+                        </a>
+                        {% if current_user.is_admin %}
+                        <a href="{{ url_for('user_management') }}" class="dropdown-item">
+                            <i class="fas fa-users-cog"></i> Kullanıcı Yönetimi
+                        </a>
+                        {% endif %}
+                        <a href="{{ url_for('logout') }}" class="dropdown-item logout">
+                            <i class="fas fa-sign-out-alt"></i> Çıkış Yap
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-4"><i class="fas fa-list"></i> Tüm Taramalar</h2>
+                <a href="/dashboard" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left"></i> Dashboard'a Dön
+                </a>
+            </div>
+            <ul class="nav nav-tabs mb-3" id="scanTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="home-tab" href="/" role="tab">
+                        <i class="fas fa-home"></i> Anasayfa
+                    </a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="network-tab" data-bs-toggle="tab" data-bs-target="#network-scans" type="button" role="tab">Ağ Taramaları</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="port-tab" data-bs-toggle="tab" data-bs-target="#port-scans" type="button" role="tab">Port Taramaları</button>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="network-scans" role="tabpanel">
+                    <div class="card mb-3 p-3">
+                        <form id="filterForm" class="row g-2 align-items-end">
+                            <div class="col-md-3">
+                                <label for="scanType" class="form-label">Tarama Tipi</label>
+                                <select id="scanType" class="form-select" name="scan_type">
+                                    <option value="">Hepsi</option>
+                                    <option value="manual">Manuel</option>
+                                    <option value="scheduled">Zamanlanmış</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="networkRange" class="form-label">Ağ Aralığı</label>
+                                <input type="text" id="networkRange" class="form-control" name="network_range" placeholder="örn: 192.168.1.0/24">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="dateFrom" class="form-label">Başlangıç Tarihi</label>
+                                <input type="date" id="dateFrom" class="form-control" name="date_from">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="dateTo" class="form-label">Bitiş Tarihi</label>
+                                <input type="date" id="dateTo" class="form-control" name="date_to">
+                            </div>
+                            <div class="col-md-12 mt-2 d-flex justify-content-between">
+                                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Filtrele</button>
+                                <button type="button" id="exportBtn" class="btn btn-success"><i class="fas fa-file-excel"></i> Excel'e Aktar</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="networkScansTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Ağ Aralığı</th>
+                                    <th>Aktif IP</th>
+                                    <th>Tarama Tipi</th>
+                                    <th>Tarih</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div id="networkPagination" class="mt-2"></div>
+                </div>
+                <div class="tab-pane fade" id="port-scans" role="tabpanel">
+                    <div class="card mb-3 p-3">
+                        <form id="portFilterForm" class="row g-2 align-items-end">
+                            <div class="col-md-2">
+                                <label for="portScanType" class="form-label">Tarama Tipi</label>
+                                <select id="portScanType" class="form-select" name="scan_type">
+                                    <option value="">Hepsi</option>
+                                    <option value="manual">Manuel</option>
+                                    <option value="scheduled">Zamanlanmış</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="targetHost" class="form-label">Hedef Host</label>
+                                <input type="text" id="targetHost" class="form-control" name="target_host" placeholder="örn: 192.168.1.10">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="portRange" class="form-label">Port Aralığı</label>
+                                <input type="text" id="portRange" class="form-control" name="port_range" placeholder="örn: 1-1024">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="portDateFrom" class="form-label">Başlangıç Tarihi</label>
+                                <input type="date" id="portDateFrom" class="form-control" name="date_from">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="portDateTo" class="form-label">Bitiş Tarihi</label>
+                                <input type="date" id="portDateTo" class="form-control" name="date_to">
+                            </div>
+                            <div class="col-md-2 mt-2 d-flex justify-content-between align-items-end">
+                                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search"></i> Filtrele</button>
+                            </div>
+                            <div class="col-md-12 mt-2 d-flex justify-content-end">
+                                <button type="button" id="portExportBtn" class="btn btn-success"><i class="fas fa-file-excel"></i> Excel'e Aktar</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="portScansTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Hedef Host</th>
+                                    <th>Port Aralığı</th>
+                                    <th>Tarama Tipi</th>
+                                    <th>Durum</th>
+                                    <th>Açık Port</th>
+                                    <th>Başlangıç</th>
+                                    <th>Bitiş</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div id="portPagination" class="mt-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Ağ taramaları için pagination değişkenleri
+globalThis.networkPage = 1;
+globalThis.networkPageSize = 10;
+globalThis.networkTotal = 0;
+// Port taramaları için pagination değişkenleri
+globalThis.portPage = 1;
+globalThis.portPageSize = 10;
+globalThis.portTotal = 0;
+
+// Ağ taramaları için pagination UI
+function renderNetworkPagination() {
+    const totalPages = Math.ceil(networkTotal / networkPageSize) || 1;
+    document.getElementById('networkPagination').innerHTML = `
+        <div class='d-flex align-items-center justify-content-between'>
+            <div>
+                <label>Sayfa Boyutu: </label>
+                <select id='networkPageSizeSelect' class='form-select d-inline-block w-auto ms-2'>
+                    <option value='10' ${networkPageSize==10?'selected':''}>10</option>
+                    <option value='50' ${networkPageSize==50?'selected':''}>50</option>
+                    <option value='100' ${networkPageSize==100?'selected':''}>100</option>
+                </select>
+            </div>
+            <div>
+                <button class='btn btn-sm btn-outline-secondary' ${networkPage==1?'disabled':''} onclick='networkPrevPage()'>&lt;</button>
+                <span class='mx-2'>${networkPage} / ${totalPages}</span>
+                <button class='btn btn-sm btn-outline-secondary' ${networkPage==totalPages?'disabled':''} onclick='networkNextPage()'>&gt;</button>
+            </div>
+            <div>Toplam: ${networkTotal}</div>
+        </div>
+    `;
+    document.getElementById('networkPageSizeSelect').onchange = function() {
+        networkPageSize = parseInt(this.value);
+        networkPage = 1;
+        fetchNetworkScans();
+    };
+}
+function networkPrevPage() { if(networkPage>1){ networkPage--; fetchNetworkScans(); } }
+function networkNextPage() { const totalPages = Math.ceil(networkTotal / networkPageSize) || 1; if(networkPage<totalPages){ networkPage++; fetchNetworkScans(); } }
+
+// Port taramaları için pagination UI
+function renderPortPagination() {
+    const totalPages = Math.ceil(portTotal / portPageSize) || 1;
+    document.getElementById('portPagination').innerHTML = `
+        <div class='d-flex align-items-center justify-content-between'>
+            <div>
+                <label>Sayfa Boyutu: </label>
+                <select id='portPageSizeSelect' class='form-select d-inline-block w-auto ms-2'>
+                    <option value='10' ${portPageSize==10?'selected':''}>10</option>
+                    <option value='50' ${portPageSize==50?'selected':''}>50</option>
+                    <option value='100' ${portPageSize==100?'selected':''}>100</option>
+                </select>
+            </div>
+            <div>
+                <button class='btn btn-sm btn-outline-secondary' ${portPage==1?'disabled':''} onclick='portPrevPage()'>&lt;</button>
+                <span class='mx-2'>${portPage} / ${totalPages}</span>
+                <button class='btn btn-sm btn-outline-secondary' ${portPage==totalPages?'disabled':''} onclick='portNextPage()'>&gt;</button>
+            </div>
+            <div>Toplam: ${portTotal}</div>
+        </div>
+    `;
+    document.getElementById('portPageSizeSelect').onchange = function() {
+        portPageSize = parseInt(this.value);
+        portPage = 1;
+        fetchPortScans();
+    };
+}
+function portPrevPage() { if(portPage>1){ portPage--; fetchPortScans(); } }
+function portNextPage() { const totalPages = Math.ceil(portTotal / portPageSize) || 1; if(portPage<totalPages){ portPage++; fetchPortScans(); } }
+
+function fetchNetworkScans() {
+    const params = new URLSearchParams();
+    const scanType = document.getElementById('scanType').value;
+    const networkRange = document.getElementById('networkRange').value;
+    const dateFrom = document.getElementById('dateFrom').value;
+    const dateTo = document.getElementById('dateTo').value;
+    params.append('page', networkPage);
+    params.append('page_size', networkPageSize);
+    if (scanType) params.append('scan_type', scanType);
+    if (networkRange) params.append('network_range', networkRange);
+    if (dateFrom) params.append('date_from', dateFrom);
+    if (dateTo) params.append('date_to', dateTo);
+    fetch('/api/network-scans?' + params.toString())
+        .then(res => res.json())
+        .then(data => {
+            const tbody = document.querySelector('#networkScansTable tbody');
+            tbody.innerHTML = '';
+            (data.items || []).forEach(scan => {
+                tbody.innerHTML += `<tr>
+                    <td>${scan.id}</td>
+                    <td>${scan.network_range}</td>
+                    <td>${scan.active_ip_count}</td>
+                    <td>${scan.scan_type === 'manual' ? 'Manuel' : 'Zamanlanmış'}</td>
+                    <td>${formatDateLocalNetwork(scan.created_at)}</td>
+                    <td><button class='btn btn-sm btn-outline-success' onclick='downloadNetworkScanExcel(${scan.id})'><i class="fas fa-file-excel"></i></button></td>
+                </tr>`;
+            });
+            networkTotal = data.total || 0;
+            renderNetworkPagination();
+        });
+}
+document.getElementById('filterForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    fetchNetworkScans();
+});
+document.getElementById('exportBtn').addEventListener('click', function() {
+    const scanType = document.getElementById('scanType').value;
+    const networkRange = document.getElementById('networkRange').value;
+    const dateFrom = document.getElementById('dateFrom').value;
+    const dateTo = document.getElementById('dateTo').value;
+    fetch('/export-network-scans', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scan_type: scanType, network_range: networkRange, date_from: dateFrom, date_to: dateTo })
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Excel export failed');
+        return response.blob();
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `network_scans_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    })
+    .catch(err => alert('Excel indirme hatası: ' + err.message));
+});
+window.addEventListener('DOMContentLoaded', fetchNetworkScans);
+
+// Port taramaları için
+function fetchPortScans() {
+    const params = new URLSearchParams();
+    const scanType = document.getElementById('portScanType').value;
+    const targetHost = document.getElementById('targetHost').value;
+    const portRange = document.getElementById('portRange').value;
+    const dateFrom = document.getElementById('portDateFrom').value;
+    const dateTo = document.getElementById('portDateTo').value;
+    params.append('page', portPage);
+    params.append('page_size', portPageSize);
+    if (scanType) params.append('scan_type', scanType);
+    if (targetHost) params.append('target_host', targetHost);
+    if (portRange) params.append('port_range', portRange);
+    if (dateFrom) params.append('date_from', dateFrom);
+    if (dateTo) params.append('date_to', dateTo);
+    fetch('/api/port-scans?' + params.toString())
+        .then(res => res.json())
+        .then(data => {
+            const tbody = document.querySelector('#portScansTable tbody');
+            tbody.innerHTML = '';
+            (data.items || []).forEach(scan => {
+                tbody.innerHTML += `<tr>
+                    <td>${scan.id}</td>
+                    <td>${scan.target_host}</td>
+                    <td>${scan.start_port}-${scan.end_port}</td>
+                    <td>${scan.scan_type}</td>
+                    <td>${scan.status}</td>
+                    <td>${scan.open_ports_count}</td>
+                    <td>${formatDateLocalPort(scan.start_time)}</td>
+                    <td>${formatDateLocalPort(scan.end_time)}</td>
+                    <td><button class='btn btn-sm btn-outline-success' onclick='downloadPortScanExcel(${scan.id})'><i class="fas fa-file-excel"></i></button></td>
+                </tr>`;
+            });
+            portTotal = data.total || 0;
+            renderPortPagination();
+        });
+}
+document.getElementById('portFilterForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    fetchPortScans();
+});
+document.getElementById('port-tab').addEventListener('click', fetchPortScans);
+document.getElementById('portExportBtn').addEventListener('click', function() {
+    const scanType = document.getElementById('portScanType').value;
+    const targetHost = document.getElementById('targetHost').value;
+    const portRange = document.getElementById('portRange').value;
+    const dateFrom = document.getElementById('portDateFrom').value;
+    const dateTo = document.getElementById('portDateTo').value;
+    fetch('/export-port-scans', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scan_type: scanType, target_host: targetHost, port_range: portRange, date_from: dateFrom, date_to: dateTo })
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Excel export failed');
+        return response.blob();
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `port_scans_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    })
+    .catch(err => alert('Excel indirme hatası: ' + err.message));
+});
+
+function downloadNetworkScanExcel(scanId) {
+    fetch(`/export-network-scan/${scanId}`)
+        .then(response => {
+            if (!response.ok) throw new Error('Excel export failed');
+            return response.blob();
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `network_scan_${scanId}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        })
+        .catch(err => alert('Excel indirme hatası: ' + err.message));
+}
+function downloadPortScanExcel(scanId) {
+    fetch(`/export-port-scan/${scanId}`)
+        .then(response => {
+            if (!response.ok) throw new Error('Excel export failed');
+            return response.blob();
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `port_scan_${scanId}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        })
+        .catch(err => alert('Excel indirme hatası: ' + err.message));
+}
+
+// Tarih formatlama fonksiyonu (Europe/Istanbul)
+function formatDateLocalPort(dateStr) {
+    if (!dateStr) return '';
+    const utcDate = new Date(dateStr.endsWith('Z') ? dateStr : dateStr + 'Z');
+    return utcDate.toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul' });
+}
+function formatDateLocalNetwork(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return d.toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul' });
+}
+
+// User dropdown toggle
+function toggleUserDropdown() {
+    const dropdown = document.getElementById('userDropdown');
+    dropdown.classList.toggle('show');
+}
+// Close dropdown if clicked outside
+document.addEventListener('click', function(event) {
+    const userInfo = document.querySelector('.user-info');
+    const dropdown = document.getElementById('userDropdown');
+    if (dropdown && dropdown.classList.contains('show')) {
+        if (!userInfo.contains(event.target)) {
+            dropdown.classList.remove('show');
+        }
+    }
+});
+if (document.getElementById('userDropdown')) {
+    document.getElementById('userDropdown').addEventListener('click', function(event) {
+        event.stopPropagation();
+    });
+}
+</script>
+</body>
+</html> 
