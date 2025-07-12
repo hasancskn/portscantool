@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .dashboard-container {
+            background: rgba(255,255,255,0.97);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            margin: 2rem auto;
+            padding: 2rem 2.5rem;
+            max-width: 1100px;
+        }
+        .dashboard-title {
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem 1rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(102,126,234,0.08);
+        }
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        .chart-container {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(102,126,234,0.08);
+            padding: 2rem 1rem;
+            margin-bottom: 2rem;
+        }
+        .user-info {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        
+        .user-info .user-details {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .user-info .user-details:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .user-info .username {
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .user-info .btn-logout {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 0.25rem 0.75rem;
+            color: white;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+        
+        .user-info .btn-logout:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(220, 53, 69, 0.3);
+        }
+        
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+            min-width: 200px;
+            z-index: 1000;
+            display: none;
+            margin-top: 0.5rem;
+        }
+        
+        .user-dropdown.show {
+            display: block;
+        }
+        
+        .user-dropdown .dropdown-item {
+            padding: 0.75rem 1rem;
+            color: #333;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .user-dropdown .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        
+        .user-dropdown .dropdown-item:hover {
+            background: #f8f9fa;
+            color: #667eea;
+        }
+        
+        .user-dropdown .dropdown-item.logout {
+            color: #dc3545;
+        }
+        
+        .user-dropdown .dropdown-item.logout:hover {
+            background: #fee;
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="dashboard-container">
+            <div class="d-flex justify-content-end align-items-center mb-3">
+                <div class="user-info">
+                    <div class="user-details" onclick="toggleUserDropdown()" style="cursor: pointer;">
+                        <i class="fas fa-user-circle"></i>
+                        <span class="username">{{ current_user.username }}</span>
+                        {% if current_user.is_admin %}
+                            <span class="badge bg-warning text-dark">Admin</span>
+                        {% endif %}
+                        <i class="fas fa-chevron-down" style="font-size: 0.8rem; color: #667eea;"></i>
+                    </div>
+                    <div class="user-dropdown" id="userDropdown">
+                        <a href="{{ url_for('change_password') }}" class="dropdown-item">
+                            <i class="fas fa-key"></i> Şifre Değiştir
+                        </a>
+                        {% if current_user.is_admin %}
+                        <a href="{{ url_for('user_management') }}" class="dropdown-item">
+                            <i class="fas fa-users-cog"></i> Kullanıcı Yönetimi
+                        </a>
+                        {% endif %}
+                        <a href="{{ url_for('logout') }}" class="dropdown-item logout">
+                            <i class="fas fa-sign-out-alt"></i> Çıkış Yap
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <ul class="nav nav-tabs mb-4" id="dashboardTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="home-tab" href="/" role="tab">
+                        <i class="fas fa-home"></i> Anasayfa
+                    </a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="port-tab" data-bs-toggle="tab" data-bs-target="#port-dashboard" type="button" role="tab">Port Tarama</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="network-tab" data-bs-toggle="tab" data-bs-target="#network-dashboard" type="button" role="tab">Ağ Tarama</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="all-scans-tab" href="/network-scans" role="tab">
+                        <i class="fas fa-list"></i> Tüm Taramalar
+                    </a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="port-dashboard" role="tabpanel">
+                    <h1 class="dashboard-title"><i class="fas fa-chart-line"></i> Port Tarama Dashboard</h1>
+                    <div class="row mb-4" id="statCards"></div>
+                    <div class="row">
+                        <div class="col-md-7">
+                            <div class="chart-container mb-4">
+                                <h5 class="mb-3"><i class="fas fa-calendar-alt"></i> Son 30 Günlük Tarama Sayısı</h5>
+                                <canvas id="scanChart" height="120"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="chart-container mb-4">
+                                <h5 class="mb-3"><i class="fas fa-network-wired"></i> En Çok Açık Port Servisleri</h5>
+                                <canvas id="portChart" height="120"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="network-dashboard" role="tabpanel">
+                    <h1 class="dashboard-title"><i class="fas fa-network-wired"></i> Ağ Tarama Dashboard</h1>
+                    <div class="row mb-4" id="networkStatCards"></div>
+                    <div class="row">
+                        <div class="col-md-7">
+                            <div class="chart-container mb-4">
+                                <h5 class="mb-3"><i class="fas fa-calendar-alt"></i> Son 30 Günlük Ağ Taramaları</h5>
+                                <canvas id="networkScanChart" height="120"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="chart-container mb-4">
+                                <h5 class="mb-3"><i class="fas fa-list"></i> Son 10 Ağ Taraması</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Ağ Aralığı</th>
+                                                <th>Aktif IP</th>
+                                                <th>Tarih</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="networkScanTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        fetch('/api/dashboard-stats')
+            .then(res => res.json())
+            .then(data => {
+                // Stat kartları
+                document.getElementById('statCards').innerHTML = `
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-number">${data.total_scans}</div>
+                            <div class="stat-label">Toplam Tarama</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-number">${data.total_open_ports}</div>
+                            <div class="stat-label">Toplam Açık Port</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-number">${data.total_alerts}</div>
+                            <div class="stat-label">Toplam Alarm</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-number">${data.recent_scans}</div>
+                            <div class="stat-label">Son 30 Gün Tarama</div>
+                        </div>
+                    </div>
+                `;
+                // Günlük tarama grafiği
+                const scanDates = Object.keys(data.daily_scans || {});
+                const scanCounts = Object.values(data.daily_scans || {});
+                new Chart(document.getElementById('scanChart').getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: scanDates,
+                        datasets: [{
+                            label: 'Tarama Sayısı',
+                            data: scanCounts,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102,126,234,0.15)',
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#764ba2',
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { title: { display: true, text: 'Tarih' } },
+                            y: { title: { display: true, text: 'Tarama' }, beginAtZero: true }
+                        }
+                    }
+                });
+                // Port dağılımı grafiği
+                const portLabels = (data.port_distribution || []).map(p => p.service);
+                const portCounts = (data.port_distribution || []).map(p => p.count);
+                new Chart(document.getElementById('portChart').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: portLabels,
+                        datasets: [{
+                            label: 'Açık Port',
+                            data: portCounts,
+                            backgroundColor: '#764ba2',
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        indexAxis: 'y',
+                        scales: {
+                            x: { title: { display: true, text: 'Açık Port Sayısı' }, beginAtZero: true },
+                            y: { title: { display: true, text: 'Servis' } }
+                        }
+                    }
+                });
+            });
+
+        // Ağ taraması dashboardu
+        fetch('/api/network-scan-stats')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('networkStatCards').innerHTML = `
+                    <div class="col-md-6">
+                        <div class="stat-card">
+                            <div class="stat-number">${data.total_network_scans}</div>
+                            <div class="stat-label">Toplam Ağ Taraması</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="stat-card">
+                            <div class="stat-number">${data.total_active_ips}</div>
+                            <div class="stat-label">Toplam Aktif IP</div>
+                        </div>
+                    </div>
+                `;
+                // Zaman çizelgesi grafiği
+                const netDates = Object.keys(data.daily_network_scans || {});
+                const netCounts = Object.values(data.daily_network_scans || {});
+                new Chart(document.getElementById('networkScanChart').getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: netDates,
+                        datasets: [{
+                            label: 'Ağ Taramaları',
+                            data: netCounts,
+                            borderColor: '#764ba2',
+                            backgroundColor: 'rgba(118,75,162,0.15)',
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#667eea',
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { title: { display: true, text: 'Tarih' } },
+                            y: { title: { display: true, text: 'Ağ Taramaları' }, beginAtZero: true }
+                        }
+                    }
+                });
+                // Son 10 ağ taraması tablosu
+                let rows = '';
+                (data.last_network_scans || []).forEach((scan, i) => {
+                    rows += `<tr><td>${i+1}</td><td>${scan.network_range}</td><td>${scan.active_ip_count}</td><td>${scan.created_at}</td></tr>`;
+                });
+                document.getElementById('networkScanTableBody').innerHTML = rows;
+            });
+    </script>
+    
+    <script>
+        // User dropdown toggle
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown if clicked outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-details') && !event.target.closest('.user-dropdown')) {
+                const dropdowns = document.getElementsByClassName('user-dropdown');
+                for (let i = 0; i < dropdowns.length; i++) {
+                    const openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html> 

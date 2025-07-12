@@ -1,354 +1,263 @@
-# 🔍 Port & IP Tarama Aracı
+# 🚀 Advanced Port Scanner - Gelişmiş Port Tarama Sistemi
 
-Modern ve kullanıcı dostu web tabanlı port ve ağ tarama aracı. Güvenli ve hızlı ağ keşfi yapın, sonuçları Excel formatında indirin.
+Güvenli ve kapsamlı port tarama sistemi. Nmap tabanlı gelişmiş tarama, zamanlanmış görevler, anomali tespiti ve alarm sistemi ile birlikte gelir.
 
 ## ✨ Özellikler
 
-- 🌐 **Web Tabanlı Arayüz**: Modern ve responsive tasarım
-- 🔍 **İki Tarama Modu**: Port tarama ve ağ tarama
-- ⚡ **Hızlı Tarama**: Multi-threading ile paralel tarama
-- 📊 **Detaylı Raporlama**: Açık portlar, aktif IP'ler, servis bilgileri ve istatistikler
-- 📈 **Excel Export**: Sonuçları Excel dosyası olarak indirme
-- 🐳 **Docker Desteği**: Kolay kurulum ve dağıtım
-- 🔒 **Güvenli**: Timeout ve thread limitleri ile güvenli tarama
-- 📱 **Mobil Uyumlu**: Tüm cihazlardan erişilebilir
+### 🔍 Gelişmiş Tarama
+- **Nmap Entegrasyonu**: `nmap -sV -O` komutları ile detaylı tarama
+- **Servis Versiyon Tespiti**: Açık portlardaki servislerin versiyon bilgileri
+- **İşletim Sistemi Tespiti**: Hedef sistemin OS bilgileri
+- **MAC Adresi ve Vendor**: Cihaz bilgileri
+- **Banner Grabbing**: Servis banner'ları
 
-## 🚀 Hızlı Başlangıç
+### 📊 Veritabanı ve Raporlama
+- **PostgreSQL Veritabanı**: Tüm tarama sonuçları saklanır
+- **Audit Logging**: Tüm işlemler kayıt altına alınır
+- **Excel Export**: Sonuçları Excel formatında indirme
+- **Dashboard**: Gerçek zamanlı istatistikler ve grafikler
 
-### Docker ile Kurulum (Önerilen)
+### ⏰ Zamanlanmış Tarama
+- **Otomatik Tarama**: Belirli aralıklarla otomatik tarama
+- **Çoklu Hedef**: Birden fazla IP/host için toplu tarama
+- **Esnek Zamanlama**: Saniye, dakika, saat bazında ayarlama
 
-1. **Projeyi klonlayın:**
+### 🚨 Anomali Tespiti ve Alarm
+- **Değişiklik Tespiti**: Yeni açılan/kapanan portlar
+- **Servis Değişiklikleri**: Servis versiyon değişiklikleri
+- **Email Alarmları**: SMTP ile email bildirimleri
+- **Webhook Alarmları**: Slack, Discord vb. entegrasyonlar
+- **Severity Levels**: Kritik, yüksek, orta, düşük önem seviyeleri
+
+### 🌐 Web Arayüzü
+- **Modern UI**: Bootstrap 5 ile responsive tasarım
+- **Gerçek Zamanlı**: Canlı güncellenen dashboard
+- **Grafik Raporlar**: Plotly ile interaktif grafikler
+- **Tablo Görünümleri**: Detaylı sonuç tabloları
+
+## 🛠️ Teknoloji Stack
+
+- **Backend**: Python 3.11, Flask
+- **Veritabanı**: PostgreSQL 15
+- **Tarama Motoru**: Nmap + python-nmap
+- **Zamanlama**: schedule modülü
+- **Frontend**: HTML5, Bootstrap 5, JavaScript, Plotly
+- **Container**: Docker & Docker Compose
+- **Alarm**: SMTP, Webhook (Slack/Discord)
+
+## 📋 Gereksinimler
+
+- Docker ve Docker Compose
+- En az 2GB RAM
+- İnternet bağlantısı (nmap güncellemeleri için)
+
+## 🚀 Kurulum
+
+### 1. Projeyi İndirin
 ```bash
-git clone https://github.com/hasancskn/portscantool.git
-cd port-scanner
+git clone <repository-url>
+cd advanced-port-scanner
 ```
 
-2. **Docker Compose ile çalıştırın:**
+### 2. Environment Ayarları
+`.env` dosyası oluşturun (opsiyonel):
+```env
+# Database Configuration
+DATABASE_URL=postgresql://postgres:password@postgres:5432/port_scanner_db
+
+# Flask Configuration
+FLASK_SECRET_KEY=your-secret-key-change-this-in-production
+FLASK_ENV=development
+
+# Email Configuration (for alerts)
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+ALERT_EMAIL=admin@example.com
+
+# Webhook Configuration (for alerts)
+WEBHOOK_URL=https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK
+
+# Scan Configuration
+DEFAULT_SCAN_TIMEOUT=300
+DEFAULT_MAX_THREADS=100
+SCHEDULED_SCAN_INTERVAL=3600
+
+# Nmap Configuration
+NMAP_TIMING_TEMPLATE=T4
+NMAP_SCRIPT_ARGS=version-intensity=5
+```
+
+### 3. Docker ile Başlatın
 ```bash
+# Container'ları build et ve başlat
 docker-compose up -d
+
+# Logları kontrol et
+docker-compose logs -f
 ```
 
-3. **Tarayıcınızda açın:**
-```
-http://localhost:5000
-```
-
-### Manuel Kurulum
-
-1. **Python 3.8+ yükleyin**
-
-2. **Bağımlılıkları yükleyin:**
-```bash
-pip install -r requirements.txt
-```
-
-3. **Uygulamayı çalıştırın:**
-```bash
-python app.py
-```
-
-4. **Tarayıcınızda açın:**
-```
-http://localhost:5000
-```
+### 4. Erişim
+- **Ana Uygulama**: http://localhost:5000
+- **Dashboard**: http://localhost:5000/dashboard
+- **PostgreSQL**: localhost:5432
 
 ## 📖 Kullanım
 
-### Port Tarama
-
-1. **"Port Tarama" sekmesine geçin**
-2. **Hedef Host/IP girin:**
-   - IP adresi: `192.168.1.1`
-   - Domain adı: `example.com`
-
-3. **Port aralığını belirleyin:**
-   - Başlangıç portu: `1`
-   - Bitiş portu: `1024` (varsayılan)
-
-4. **Tarama parametrelerini ayarlayın:**
-   - **Timeout**: Port bağlantı zaman aşımı (varsayılan: 1 saniye)
-   - **Maksimum Thread**: Eşzamanlı tarama sayısı (varsayılan: 100)
-
-5. **"Port Taramasını Başlat" butonuna tıklayın**
+### Manuel Port Tarama
+1. Ana sayfada "Port Tarama" sekmesine gidin
+2. Hedef host/IP adresini girin
+3. Port aralığını belirleyin
+4. "Port Taramasını Başlat" butonuna tıklayın
+5. Sonuçları tabloda görüntüleyin
 
 ### Ağ Tarama
+1. "Ağ Tarama" sekmesine gidin
+2. CIDR formatında ağ aralığı girin (örn: 192.168.1.0/24)
+3. "Ağ Taramasını Başlat" butonuna tıklayın
+4. Aktif IP'leri görüntüleyin
 
-1. **"Ağ Tarama" sekmesine geçin**
-2. **Ağ aralığını girin (CIDR formatında):**
-   - Örnek: `192.168.1.0/24` (254 IP adresi)
-   - Örnek: `10.0.0.0/16` (65,534 IP adresi)
+### Zamanlanmış Tarama
+1. Dashboard'da "Zamanlanmış" sekmesine gidin
+2. "Yeni Ekle" butonuna tıklayın
+3. Tarama adı, hedef hostlar, port aralığı ve zamanlama ayarlayın
+4. Kaydedin
 
-3. **Tarama parametrelerini ayarlayın:**
-   - **Timeout**: Ping zaman aşımı (varsayılan: 1 saniye)
-   - **Maksimum Thread**: Eşzamanlı ping sayısı (varsayılan: 50)
-
-4. **"Ağ Taramasını Başlat" butonuna tıklayın**
-
-### Gelişmiş Kullanım
-
-#### Yaygın Port Aralıkları
-
-| Amaç | Başlangıç | Bitiş | Açıklama |
-|------|-----------|-------|----------|
-| Hızlı Tarama | 1 | 1024 | Standart portlar |
-| Web Servisleri | 80 | 443 | HTTP/HTTPS |
-| Veritabanları | 1433 | 5432 | MSSQL, MySQL, PostgreSQL |
-| Tam Tarama | 1 | 65535 | Tüm portlar (uzun sürer) |
-
-#### Yaygın Ağ Aralıkları
-
-| Amaç | CIDR | IP Sayısı | Açıklama |
-|------|------|-----------|----------|
-| Ev Ağı | 192.168.1.0/24 | 254 | Standart ev ağı |
-| Küçük Ofis | 10.0.0.0/24 | 254 | Küçük işletme ağı |
-| Büyük Ağ | 172.16.0.0/16 | 65,534 | Kurumsal ağ |
-| Test Ağı | 127.0.0.0/8 | 16,777,214 | Localhost ağı |
-
-#### Örnek Kullanım Senaryoları
-
-**1. Ev Ağı Keşfi:**
-```
-Ağ Aralığı: 192.168.1.0/24
-Timeout: 2 saniye
-Thread: 50
-```
-
-**2. Web Sunucusu Port Tarama:**
-```
-Hedef: example.com
-Port Aralığı: 80-443
-Timeout: 1 saniye
-```
-
-**3. Veritabanı Sunucusu Tarama:**
-```
-Hedef: 192.168.1.100
-Port Aralığı: 1433-5432
-Timeout: 1 saniye
-```
-
-**4. Hızlı Güvenlik Kontrolü:**
-```
-Hedef: localhost
-Port Aralığı: 1-1024
-Timeout: 0.5 saniye
-Thread: 200
-```
-
-## 📊 Sonuçlar ve Raporlama
-
-### Port Tarama Sonuçları
-
-Tarama sonuçları şu bilgileri içerir:
-
-- **İstatistikler**: Toplam port, taranan port, açık port sayısı
-- **Tarama Süresi**: İşlem tamamlanma süresi
-- **Port Listesi**: Açık portlar, servis adları ve durumları
-
-### Ağ Tarama Sonuçları
-
-Ağ tarama sonuçları şu bilgileri içerir:
-
-- **İstatistikler**: Toplam IP, taranan IP, aktif IP sayısı
-- **Tarama Süresi**: İşlem tamamlanma süresi
-- **IP Listesi**: Aktif IP'ler, hostname'ler ve response time'lar
-
-### Excel Raporu
-
-Excel dosyası tarama tipine göre farklı sütunlar içerir:
-
-#### Port Tarama Excel'i
-| Sütun | Açıklama |
-|-------|----------|
-| Hedef Host | Taranan IP/domain |
-| Tarama Zamanı | Tarama başlangıç tarihi/saati |
-| Port | Port numarası |
-| Servis | Port üzerinde çalışan servis |
-| Durum | Port durumu (Open/Closed) |
-
-#### Ağ Tarama Excel'i
-| Sütun | Açıklama |
-|-------|----------|
-| Ağ Aralığı | Taranan ağ aralığı |
-| Tarama Zamanı | Tarama başlangıç tarihi/saati |
-| IP Adresi | Aktif IP adresi |
-| Hostname | IP'nin hostname'i |
-| Durum | IP durumu (Active/Inactive) |
-| Response Time | Ping response süresi |
+### Alarm Yönetimi
+1. Dashboard'da "Alarmlar" sekmesine gidin
+2. Son alarmları görüntüleyin
+3. "Test Alarmı" butonu ile alarm sistemini test edin
 
 ## 🔧 Konfigürasyon
 
-### Environment Variables
+### Email Alarmları
+Gmail kullanıyorsanız:
+1. Gmail'de "2 Adımlı Doğrulama" aktif edin
+2. "Uygulama Şifreleri" oluşturun
+3. `.env` dosyasında SMTP ayarlarını yapın
 
-```bash
-# Flask konfigürasyonu
-FLASK_ENV=production
-FLASK_DEBUG=false
+### Webhook Alarmları
+Slack için:
+1. Slack workspace'inizde webhook URL oluşturun
+2. `.env` dosyasında `WEBHOOK_URL` ayarlayın
 
-# Port tarama ayarları
-DEFAULT_TIMEOUT=1
-DEFAULT_MAX_THREADS=100
+### Nmap Ayarları
+- `NMAP_TIMING_TEMPLATE`: Tarama hızı (T1-T5)
+- `NMAP_SCRIPT_ARGS`: Versiyon tespiti yoğunluğu
 
-# Ağ tarama ayarları
-NETWORK_DEFAULT_TIMEOUT=1
-NETWORK_DEFAULT_MAX_THREADS=50
-```
+## 📊 Dashboard Özellikleri
 
-### Docker Compose Özelleştirme
+### İstatistikler
+- Toplam tarama sayısı
+- Son 30 günde yapılan taramalar
+- Toplam açık port sayısı
+- Toplam alarm sayısı
+- Aktif zamanlanmış taramalar
 
-```yaml
-services:
-  port-scanner:
-    build: .
-    ports:
-      - "5000:5000"
-    container_name: port-scanner-app
-    restart: unless-stopped
-    environment:
-      - FLASK_ENV=production
-    volumes:
-      - ./logs:/app/logs
-```
+### Grafikler
+- Günlük tarama aktivitesi
+- Port servis dağılımı
+- Alarm trendleri
 
-## 🛠️ Geliştirme
-
-### Proje Yapısı
-
-```
-port-scanner/
-├── app.py                 # Ana Flask uygulaması
-├── requirements.txt       # Python bağımlılıkları
-├── Dockerfile            # Docker imaj tanımı
-├── docker-compose.yml    # Docker Compose konfigürasyonu
-├── templates/
-│   └── index.html        # Web arayüzü
-├── logs/                 # Log dosyaları
-└── README.md            # Bu dosya
-```
-
-### Yeni Özellik Ekleme
-
-1. **Backend (Python):**
-   - `app.py` dosyasına yeni endpoint ekleyin
-   - Tarama mantığını genişletin
-
-2. **Frontend (HTML/JS):**
-   - `templates/index.html` dosyasını düzenleyin
-   - Yeni UI bileşenleri ekleyin
-
-3. **Test:**
-   ```bash
-   # Geliştirme modunda çalıştır
-   python app.py
-   
-   # Docker ile test et
-   docker-compose up --build
-   ```
+### Tablolar
+- Son taramalar
+- Son alarmlar
+- Zamanlanmış taramalar
 
 ## 🔒 Güvenlik
 
 ### Önemli Notlar
-
-- ⚠️ **Yasal Uyarı**: Bu aracı sadece kendi sistemlerinizde veya izin verilen sistemlerde kullanın
-- 🛡️ **Güvenlik**: Port ve ağ tarama saldırı olarak algılanabilir, dikkatli kullanın
-- 📝 **Loglama**: Tüm tarama işlemleri loglanır
-- ⏱️ **Rate Limiting**: Çok hızlı tarama yapmaktan kaçının
+- Sadece kendi ağınızda veya izin verilen sistemlerde tarama yapın
+- Üretim ortamında güçlü şifreler kullanın
+- Firewall kurallarını kontrol edin
+- Rate limiting uygulayın
 
 ### Güvenlik Önerileri
-
-1. **Timeout Ayarları**: Çok düşük timeout değerleri kullanmayın
-2. **Thread Sayısı**: Sistem kaynaklarını aşırı yüklemeyin
-3. **Ağ Aralığı**: Gereksiz IP'leri taramaktan kaçının
-4. **Port Aralığı**: Gereksiz portları taramaktan kaçının
-5. **Ağ Trafiği**: Büyük ağ aralıkları ağ trafiğini artırır
+1. `.env` dosyasını güvenli tutun
+2. Veritabanı şifrelerini değiştirin
+3. SSL/TLS sertifikası ekleyin
+4. Düzenli güvenlik güncellemeleri yapın
 
 ## 🐛 Sorun Giderme
 
 ### Yaygın Sorunlar
 
-**1. Port 5000 kullanımda:**
+**Container başlamıyor:**
 ```bash
-# Farklı port kullanın
+# Logları kontrol et
+docker-compose logs
+
+# Container'ları yeniden başlat
+docker-compose down
 docker-compose up -d
-# veya
-python app.py --port 8080
 ```
 
-**2. Docker build hatası:**
+**Nmap çalışmıyor:**
 ```bash
-# Docker cache'ini temizleyin
-docker system prune -a
-docker-compose build --no-cache
+# Container içinde nmap'i test et
+docker exec -it port-scanner-app nmap --version
 ```
 
-**3. Ağ tarama çalışmıyor:**
+**Veritabanı bağlantı hatası:**
 ```bash
-# Ping komutunu test edin
-ping -c 1 192.168.1.1
-
-# Firewall ayarlarını kontrol edin
-# Antivirus yazılımını geçici olarak devre dışı bırakın
+# PostgreSQL container'ını kontrol et
+docker-compose ps postgres
 ```
 
-**4. Yavaş tarama:**
-- Thread sayısını artırın
-- Timeout değerini düşürün
-- Ağ/port aralığını küçültün
-
-### Log Dosyaları
-
-```bash
-# Docker loglarını görüntüle
-docker-compose logs -f
-
-# Uygulama logları
-tail -f logs/app.log
-```
+**Email alarmları çalışmıyor:**
+- SMTP ayarlarını kontrol edin
+- Gmail için "Daha az güvenli uygulama erişimi" aktif edin
+- Firewall ayarlarını kontrol edin
 
 ## 📈 Performans
 
-### Optimizasyon İpuçları
+### Optimizasyon Önerileri
+- Büyük ağlar için paralel tarama kullanın
+- Nmap timing template'ini ayarlayın
+- Veritabanı indekslerini optimize edin
+- Container kaynaklarını artırın
 
-1. **Thread Sayısı**: CPU çekirdek sayısına göre ayarlayın
-2. **Timeout**: Ağ hızına göre optimize edin
-3. **Ağ Aralığı**: Hedef odaklı tarama yapın
-4. **Sistem Kaynakları**: RAM ve CPU kullanımını izleyin
-
-### Performans Metrikleri
-
-#### Port Tarama
-| Port Aralığı | Thread | Ortalama Süre |
-|--------------|--------|---------------|
-| 1-1024 | 100 | ~10-30 saniye |
-| 1-65535 | 100 | ~5-10 dakika |
-| 1-1024 | 200 | ~5-15 saniye |
-
-#### Ağ Tarama
-| Ağ Aralığı | Thread | Ortalama Süre |
-|------------|--------|---------------|
-| /24 (254 IP) | 50 | ~30-60 saniye |
-| /16 (65K IP) | 100 | ~10-20 dakika |
-| /8 (16M IP) | 200 | ~2-4 saat |
+### Ölçeklendirme
+- Çoklu container instance'ları
+- Load balancer ekleme
+- Redis cache entegrasyonu
+- Mikroservis mimarisi
 
 ## 🤝 Katkıda Bulunma
 
-1. **Fork yapın**
-2. **Feature branch oluşturun** (`git checkout -b feature/amazing-feature`)
-3. **Değişikliklerinizi commit edin** (`git commit -m 'Add amazing feature'`)
-4. **Branch'inizi push edin** (`git push origin feature/amazing-feature`)
-5. **Pull Request oluşturun**
+1. Fork yapın
+2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
+3. Commit yapın (`git commit -m 'Add amazing feature'`)
+4. Push yapın (`git push origin feature/amazing-feature`)
+5. Pull Request açın
 
 ## 📄 Lisans
 
 Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosyasına bakın.
 
-## 🙏 Teşekkürler
+## 📞 Destek
 
-- [Flask](https://flask.palletsprojects.com/) - Web framework
-- [Bootstrap](https://getbootstrap.com/) - CSS framework
-- [Font Awesome](https://fontawesome.com/) - İkonlar
-- [OpenPyXL](https://openpyxl.readthedocs.io/) - Excel işlemleri
+- **Issues**: GitHub Issues
+- **Email**: [your-email@example.com]
+- **Documentation**: [Wiki sayfası]
+
+## 🔄 Güncellemeler
+
+### v2.0.0 (Güncel)
+- Nmap entegrasyonu eklendi
+- PostgreSQL veritabanı desteği
+- Zamanlanmış tarama sistemi
+- Anomali tespiti ve alarm sistemi
+- Gelişmiş dashboard
+- Email ve webhook alarmları
+
+### v1.0.0
+- Temel port tarama
+- Flask web arayüzü
+- Excel export
+- Docker desteği
 
 ---
 
-⭐ Bu projeyi beğendiyseniz yıldız vermeyi unutmayın! 
+**⚠️ Uyarı**: Bu araç sadece eğitim ve güvenlik testleri için tasarlanmıştır. Kötü niyetli kullanımdan kullanıcı sorumludur. 

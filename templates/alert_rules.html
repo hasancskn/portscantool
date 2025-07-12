@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Alarm Kuralları Yönetimi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #e0e7ff 0%, #f8fafc 100%);
+            min-height: 100vh;
+        }
+        .modern-card {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 4px 24px rgba(80, 112, 255, 0.08);
+            padding: 2rem 2rem 1.5rem 2rem;
+            margin-bottom: 2rem;
+        }
+        .modern-table th, .modern-table td {
+            vertical-align: middle;
+        }
+        .modern-table tbody tr:hover {
+            background: #f1f5f9;
+            transition: background 0.2s;
+        }
+        .badge-severity-low {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .badge-severity-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .badge-severity-high {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .badge-action-email {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+        .badge-action-webhook {
+            background: #f3e8ff;
+            color: #7c3aed;
+        }
+        .badge-action-dashboard {
+            background: #f1f5f9;
+            color: #334155;
+        }
+        .section-title {
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #3730a3;
+            margin-bottom: 1rem;
+        }
+        .user-info {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        
+        .user-info .user-details {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .user-info .user-details:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .user-info .username {
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .user-info .btn-logout {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 0.25rem 0.75rem;
+            color: white;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+        
+        .user-info .btn-logout:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(220, 53, 69, 0.3);
+        }
+        
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+            min-width: 200px;
+            z-index: 1000;
+            display: none;
+            margin-top: 0.5rem;
+        }
+        
+        .user-dropdown.show {
+            display: block;
+        }
+        
+        .user-dropdown .dropdown-item {
+            padding: 0.75rem 1rem;
+            color: #333;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .user-dropdown .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        
+        .user-dropdown .dropdown-item:hover {
+            background: #f8f9fa;
+            color: #667eea;
+        }
+        
+        .user-dropdown .dropdown-item.logout {
+            color: #dc3545;
+        }
+        
+        .user-dropdown .dropdown-item.logout:hover {
+            background: #fee;
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <div class="d-flex justify-content-end align-items-center mb-3">
+            <div class="user-info">
+                <div class="user-details" onclick="toggleUserDropdown()" style="cursor: pointer;">
+                    <i class="fas fa-user-circle"></i>
+                    <span class="username">{{ current_user.username }}</span>
+                    {% if current_user.is_admin %}
+                        <span class="badge bg-warning text-dark">Admin</span>
+                    {% endif %}
+                    <i class="fas fa-chevron-down" style="font-size: 0.8rem; color: #667eea;"></i>
+                </div>
+                <div class="user-dropdown" id="userDropdown">
+                    <a href="{{ url_for('change_password') }}" class="dropdown-item">
+                        <i class="fas fa-key"></i> Şifre Değiştir
+                    </a>
+                    {% if current_user.is_admin %}
+                    <a href="{{ url_for('user_management') }}" class="dropdown-item">
+                        <i class="fas fa-users-cog"></i> Kullanıcı Yönetimi
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('logout') }}" class="dropdown-item logout">
+                        <i class="fas fa-sign-out-alt"></i> Çıkış Yap
+                    </a>
+                </div>
+            </div>
+        </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold"><i class="fas fa-bell"></i> Alarm Kuralları</h2>
+        <a href="/" class="btn btn-outline-primary"><i class="fas fa-home"></i> Anasayfa</a>
+    </div>
+    
+    <!-- Monitor kullanıcıları için form gizli -->
+    {% if current_user.role != 'monitor' %}
+    <div class="modern-card mb-4">
+        <div class="section-title"><i class="fas fa-plus-circle"></i> Yeni Alarm Kuralı Ekle</div>
+        <form id="alertRuleForm" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Kural Adı</label>
+                <input type="text" class="form-control" name="name" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Kural Tipi</label>
+                <select class="form-select" name="rule_type" id="ruleTypeSelect" required>
+                    <option value="port">Port Tarama</option>
+                    <option value="network">Ağ Tarama</option>
+                    <option value="anomaly">Anomali</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Alan</label>
+                <select class="form-select" id="fieldSelect" required>
+                    <option value="open_ports_count">Açık Port Sayısı</option>
+                    <option value="target_host">Hedef Host</option>
+                    <option value="scan_type">Tarama Tipi</option>
+                    <option value="active_ip_count">Aktif IP</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Karşılaştırma</label>
+                <select class="form-select" id="operatorSelect" required>
+                    <option value=">">&gt;</option>
+                    <option value="<">&lt;</option>
+                    <option value="=">=</option>
+                    <option value="!=">!=</option>
+                    <option value="contains">içerir</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Değer</label>
+                <input type="text" class="form-control" id="valueInput" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Önem</label>
+                <select class="form-select" name="severity" id="severitySelect" required>
+                    <option value="low">Düşük</option>
+                    <option value="medium" selected>Orta</option>
+                    <option value="high">Yüksek</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Aksiyon</label>
+                <select class="form-select" name="action" id="actionSelect" required>
+                    <option value="email">E-posta</option>
+                    <option value="webhook">Webhook</option>
+                    <option value="dashboard">Dashboard</option>
+                </select>
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="is_active" id="isActive" checked>
+                    <label class="form-check-label" for="isActive">Aktif</label>
+                </div>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save"></i> Kaydet</button>
+            </div>
+        </form>
+    </div>
+    {% else %}
+    <div class="alert alert-info mb-4">
+        <i class="fas fa-info-circle"></i>
+        <strong>Monitor Kullanıcısı:</strong> Alarm kuralı ekleme yetkiniz bulunmamaktadır. Sadece mevcut kuralları görüntüleyebilirsiniz.
+    </div>
+    {% endif %}
+    
+    <div class="modern-card">
+        <div class="section-title"><i class="fas fa-list"></i> Kural Listesi</div>
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover modern-table mb-0" id="rulesTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Kural Adı</th>
+                        <th>Tip</th>
+                        <th>Alan</th>
+                        <th>Karşılaştırma</th>
+                        <th>Değer</th>
+                        <th>Önem</th>
+                        <th>Aksiyon</th>
+                        <th>Aktif</th>
+                        <th>Oluşturulma</th>
+                        {% if current_user.role != 'monitor' %}
+                        <th>İşlem</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Kullanıcı rolünü JavaScript'e aktar
+const userRole = '{{ current_user.role }}';
+const isMonitor = userRole === 'monitor';
+
+async function fetchRules() {
+    const res = await fetch('/api/alert-rules');
+    const data = await res.json();
+    const tbody = document.querySelector('#rulesTable tbody');
+    tbody.innerHTML = '';
+    (data || []).forEach(rule => {
+        let sevBadge = rule.severity === 'low' ? 'badge-severity-low' : rule.severity === 'high' ? 'badge-severity-high' : 'badge-severity-medium';
+        let actBadge = rule.action === 'email' ? 'badge-action-email' : rule.action === 'webhook' ? 'badge-action-webhook' : 'badge-action-dashboard';
+        
+        const deleteButton = !isMonitor ? 
+            `<td><button class='btn btn-sm btn-danger' onclick='deleteRule(${rule.id})'><i class='fas fa-trash'></i></button></td>` : '';
+        
+        tbody.innerHTML += `<tr>
+            <td>${rule.id}</td>
+            <td class="fw-semibold">${rule.name}</td>
+            <td>${rule.rule_type}</td>
+            <td>${rule.field || ''}</td>
+            <td>${rule.operator || ''}</td>
+            <td>${rule.value || ''}</td>
+            <td><span class="badge ${sevBadge}">${rule.severity}</span></td>
+            <td><span class="badge ${actBadge}">${rule.action === 'email' ? 'E-posta' : rule.action === 'webhook' ? 'Webhook' : 'Dashboard'}</span></td>
+            <td><input type='checkbox' ${rule.is_active ? 'checked' : ''} onchange='toggleActive(${rule.id}, this.checked)'></td>
+            <td>${formatDate(rule.created_at)}</td>
+            ${deleteButton}
+        </tr>`;
+    });
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return d.toLocaleString('tr-TR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+// Monitor kullanıcıları için form submit event listener'ı ekleme
+if (!isMonitor) {
+    document.getElementById('alertRuleForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const body = {
+            name: form.name.value,
+            rule_type: form.rule_type.value,
+            condition: {
+                field: document.getElementById('fieldSelect').value,
+                operator: document.getElementById('operatorSelect').value,
+                value: document.getElementById('valueInput').value
+            },
+            severity: form.severity.value,
+            action: form.action.value,
+            is_active: form.is_active.checked
+        };
+        const res = await fetch('/api/alert-rules', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (data.success) {
+            form.reset();
+            form.is_active.checked = true;
+            fetchRules();
+        } else {
+            alert(data.error || 'Kural eklenemedi!');
+        }
+    });
+}
+
+async function deleteRule(id) {
+    if (!confirm('Bu kuralı silmek istediğinize emin misiniz?')) return;
+    const res = await fetch(`/api/alert-rules/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) fetchRules();
+    else alert(data.error || 'Silme işlemi başarısız!');
+}
+
+async function toggleActive(id, isActive) {
+    const res = await fetch(`/api/alert-rules/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: isActive })
+    });
+    const data = await res.json();
+    if (!data.success) alert(data.error || 'Güncelleme başarısız!');
+}
+
+function toggleUserDropdown() {
+    const dropdown = document.getElementById('userDropdown');
+    dropdown.classList.toggle('show');
+}
+
+// Close the dropdown if the user clicks outside of it
+window.addEventListener('DOMContentLoaded', fetchRules);
+</script>
+</body>
+</html> 
