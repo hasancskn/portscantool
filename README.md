@@ -236,11 +236,7 @@ docker-compose ps postgres
 
 Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosyasına bakın.
 
-## 📞 Destek
 
-- **Issues**: GitHub Issues
-- **Email**: [your-email@example.com]
-- **Documentation**: [Wiki sayfası]
 
 ## 🔄 Güncellemeler
 
