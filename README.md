@@ -1,4 +1,4 @@
-# 🚀 Advanced Port Scanner - Gelişmiş Port Tarama Sistemi
+# 🚀 Advanced IP-Port Scanner - Gelişmiş IP-Port Tarama Sistemi
 
 Güvenli ve kapsamlı port tarama sistemi. Nmap tabanlı gelişmiş tarama, zamanlanmış görevler, anomali tespiti ve alarm sistemi ile birlikte gelir.
 
@@ -60,7 +60,7 @@ cd advanced-port-scanner
 ```
 
 ### 2. Environment Ayarları
-`.env` dosyası oluşturun (opsiyonel):
+``config.py` dosyası oluşturun (opsiyonel):
 ```env
 # Database Configuration
 DATABASE_URL=postgresql://postgres:password@postgres:5432/port_scanner_db
@@ -135,12 +135,12 @@ docker-compose logs -f
 Gmail kullanıyorsanız:
 1. Gmail'de "2 Adımlı Doğrulama" aktif edin
 2. "Uygulama Şifreleri" oluşturun
-3. `.env` dosyasında SMTP ayarlarını yapın
+3. ``config.py` dosyasında SMTP ayarlarını yapın
 
 ### Webhook Alarmları
 Slack için:
 1. Slack workspace'inizde webhook URL oluşturun
-2. `.env` dosyasında `WEBHOOK_URL` ayarlayın
+2. ``config.py` dosyasında `WEBHOOK_URL` ayarlayın
 
 ### Nmap Ayarları
 - `NMAP_TIMING_TEMPLATE`: Tarama hızı (T1-T5)
@@ -174,7 +174,7 @@ Slack için:
 - Rate limiting uygulayın
 
 ### Güvenlik Önerileri
-1. `.env` dosyasını güvenli tutun
+1. ``config.py` dosyasını güvenli tutun
 2. Veritabanı şifrelerini değiştirin
 3. SSL/TLS sertifikası ekleyin
 4. Düzenli güvenlik güncellemeleri yapın
@@ -236,11 +236,7 @@ docker-compose ps postgres
 
 Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosyasına bakın.
 
-## 📞 Destek
 
-- **Issues**: GitHub Issues
-- **Email**: [your-email@example.com]
-- **Documentation**: [Wiki sayfası]
 
 ## 🔄 Güncellemeler
 
